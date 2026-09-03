@@ -296,8 +296,8 @@ export interface TickResult{
   errorColumn?:number;
 }
 
-const sensorNames=new Set(['wall_ahead','enemy_ahead','low_hp']);
-const actionNames=new Set(['move_forward','turn_left','turn_right','wait','attack']);
+const sensorNames=new Set(['wall_ahead','enemy_ahead','low_hp','enemy_near','low_energy']);
+const actionNames=new Set(['move_forward','turn_left','turn_right','wait','attack','shield']);
 
 export class Interpreter{
   globals:Record<string,RuntimeValue>={};

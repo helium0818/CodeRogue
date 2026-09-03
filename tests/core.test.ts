@@ -330,4 +330,16 @@ describe('simulation combat', () => {
     expect(run.credits).toBe(0);
     expect(run.hull).toBe(5);
   });
+  it('recognizes new sensors and lets shield block the next hit', () => {
+    const sim=new Simulation();
+    sim.setScenario(EXPEDITION_SCENARIOS.combat);
+    expect(sim.build('void update(){ if(enemy_near()){ shield(); } if(low_energy()){ wait(); } }').ok).toBe(true);
+    sim.build('void update(){ if(enemy_near()){ shield(); } }');
+    sim.reset();
+    sim.enemy.x=2; sim.enemy.y=1;
+    sim.step();
+    expect(sim.robot.hp).toBe(5);
+    expect(sim.robot.energy).toBe(18);
+    expect(sim.frames[0].sensors.some(s=>s.name==='enemy_near')).toBe(true);
+  });
 });
