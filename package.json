@@ -1,0 +1,9 @@
+{
+  "name": "code-rogue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"dev": "vite", "build": "tsc -b && vite build", "test": "vitest run"},
+  "dependencies": {"@vitejs/plugin-vue": "latest", "vite": "latest", "typescript": "latest", "vue": "latest"},
+  "devDependencies": {"vitest": "latest", "jsdom": "latest"}
+}
