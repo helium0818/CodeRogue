@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, loadStoryProgress, saveStoryProgress } from '../src/core';
+import { EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadStoryProgress, saveStoryProgress } from '../src/core';
 
 class MemoryStorage {
   private values = new Map<string,string>();
@@ -345,5 +345,11 @@ describe('simulation combat', () => {
     expect(sim.robot.hp).toBe(5);
     expect(sim.robot.energy).toBe(18);
     expect(sim.frames[0].sensors.some(s=>s.name==='enemy_near')).toBe(true);
+  });
+  it('grades battles by speed, damage, energy, actions and sensors', () => {
+    expect(gradeBattle({tick:8,damage:0,energyUsed:10,actions:9,sensorReads:8})).toBe('S');
+    expect(gradeBattle({tick:14,damage:1,energyUsed:14,actions:16,sensorReads:20})).toBe('A');
+    expect(gradeBattle({tick:18,damage:2,energyUsed:16,actions:20,sensorReads:30})).toBe('B');
+    expect(gradeBattle({tick:30,damage:4,energyUsed:20,actions:40,sensorReads:0})).toBe('C');
   });
 });
