@@ -297,7 +297,7 @@ export interface TickResult{
 }
 
 const sensorNames=new Set(['wall_ahead','enemy_ahead','low_hp','enemy_near','low_energy']);
-const actionNames=new Set(['move_forward','turn_left','turn_right','wait','attack','shield']);
+const actionNames=new Set(['move_forward','turn_left','turn_right','wait','attack','shield','ranged_attack']);
 
 export class Interpreter{
   globals:Record<string,RuntimeValue>={};

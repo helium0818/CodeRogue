@@ -381,4 +381,14 @@ describe('simulation combat', () => {
     sim.step();
     expect(sim.robot.energy).toBe(11);
   });
+  it('lets ranged_attack damage an enemy up to two tiles away', () => {
+    const sim=new Simulation();
+    sim.selectLevel(0);
+    expect(sim.build('void update(){ ranged_attack(); }').ok).toBe(true);
+    sim.reset();
+    sim.enemy={x:3,y:1,hp:3,kind:'slime'};
+    sim.step();
+    expect(sim.enemy.hp).toBe(2);
+    expect(sim.robot.energy).toBe(18);
+  });
 });
