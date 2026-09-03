@@ -33,11 +33,13 @@ void update() {
   if (enemy_ahead()) { attack(); }
   else { advance(); }
 }`,tactics:['炮台不会移动，但会在远处持续射击，尽快靠近并击破。','敌人倒下后，墙会迫使你转弯；让感知优先于移动。']},
- boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:3,kind:'tank'},starterCode:`void advance() {
+ boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:3,kind:'tank'},constraint:{require:['[']},starterCode:`int path[2];
+void advance() {
   if (wall_ahead()) { turn_right(); }
   else { move_forward(); }
 }
 void update() {
+  path[0] = path[0] + 1;
   if (enemy_ahead()) { attack(); }
   else { advance(); }
 }`,tactics:['重装核心移动慢但每次攻击更重，尽快击破以缩短受击窗口。','“弱点扫描仪”可将 attack() 提高到 2 点伤害，是应对重装核心的关键。']}
