@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadStoryProgress, saveStoryProgress } from '../src/core';
+import { EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadMeta, loadStoryProgress, saveMeta, saveStoryProgress } from '../src/core';
 
 class MemoryStorage {
   private values = new Map<string,string>();
@@ -351,5 +351,25 @@ describe('simulation combat', () => {
     expect(gradeBattle({tick:14,damage:1,energyUsed:14,actions:16,sensorReads:20})).toBe('A');
     expect(gradeBattle({tick:18,damage:2,energyUsed:16,actions:20,sensorReads:30})).toBe('B');
     expect(gradeBattle({tick:30,damage:4,energyUsed:20,actions:40,sensorReads:0})).toBe('C');
+  });
+  it('keeps generated expedition routes within bounds and structurally valid', () => {
+    for(const seed of [1,2,42,2026,999999]){
+      const run=new ExpeditionRun(seed);
+      expect(run.route.length).toBeGreaterThanOrEqual(7);
+      expect(run.route.length).toBeLessThanOrEqual(10);
+      expect(run.route[0]).toBe('combat');
+      expect(run.route[run.route.length-1]).toBe('boss');
+      expect(run.route).toContain('shop');
+      expect(run.route).toContain('event');
+    }
+  });
+  it('persists meta credits and upgrades', () => {
+    const storage=new MemoryStorage();
+    saveMeta({credits:12,runs:3,bestGrade:'A',upgrades:['energy10']},storage);
+    const meta=loadMeta(storage);
+    expect(meta.credits).toBe(12);
+    expect(meta.runs).toBe(3);
+    expect(meta.bestGrade).toBe('A');
+    expect(meta.upgrades).toEqual(['energy10']);
   });
 });
