@@ -49,7 +49,7 @@ const codeLines=computed(()=>code.value.split('\n'));
 const currentSourceLine=computed(()=>frame.value?.sourceLine);
 const currentLevel=computed(()=>STORY_LEVELS[sim.levelIndex]);
 const completedCount=computed(()=>sim.completedLevels.size);
-const expeditionModifiers=computed(()=>expedition.modifiers());
+const expeditionModifiers=computed(()=>expedition.modifiers(meta.upgrades));
 const maxHp=computed(()=>gameMode.value==='expedition'?expeditionModifiers.value.maxHp:5);
 const maxEnergy=computed(()=>gameMode.value==='expedition'?expeditionModifiers.value.maxEnergy:20);
 const hpPercent=computed(()=>`${Math.max(0,sim.robot.hp/maxHp.value*100)}%`);
@@ -139,8 +139,8 @@ function takeSnapshot(){snapshotState=sim.snapshot();hasSnapshot.value=true;sim.
 function rollback(){if(snapshotState){sim.rollback(snapshotState);selected.value=Math.max(0,sim.frames.length-1);running.value=false;clearTimer()}}
 function chooseReward(id:string){selectedReward.value=id}
 function chooseExpeditionAction(id:string){selectedExpeditionAction.value=id}
-function enterExpeditionScenario(loadExample=true){const scenario=expeditionScenario.value;if(!scenario)return;expeditionScenarioActive.value=true;expeditionBattleVerified.value=false;sim.setScenario(scenario,expedition.modifiers());running.value=false;clearTimer();selected.value=0;buildError.value='';if(loadExample){code.value=scenario.starterCode;built.value=false;levelNotice.value=`已载入${scenario.title}地图与示例固件`;try{window.localStorage.setItem('coderogue.firmware-level','expedition')}catch{}}}
-function resetExpeditionFirmware(){stop();if(expeditionNeedsFirmware.value)enterExpeditionScenario(true);else{expeditionScenarioActive.value=true;sim.setScenario(EXPEDITION_HUB_SCENARIO,expedition.modifiers());selected.value=0;built.value=false;code.value=EXPEDITION_HUB_SCENARIO.starterCode;sim.message='Route node loaded'}selected.value=0;buildError.value='';levelNotice.value=''}
+function enterExpeditionScenario(loadExample=true){const scenario=expeditionScenario.value;if(!scenario)return;expeditionScenarioActive.value=true;expeditionBattleVerified.value=false;sim.setScenario(scenario,expedition.modifiers(meta.upgrades));running.value=false;clearTimer();selected.value=0;buildError.value='';if(loadExample){code.value=scenario.starterCode;built.value=false;levelNotice.value=`已载入${scenario.title}地图与示例固件`;try{window.localStorage.setItem('coderogue.firmware-level','expedition')}catch{}}}
+function resetExpeditionFirmware(){stop();if(expeditionNeedsFirmware.value)enterExpeditionScenario(true);else{expeditionScenarioActive.value=true;sim.setScenario(EXPEDITION_HUB_SCENARIO,expedition.modifiers(meta.upgrades));selected.value=0;built.value=false;code.value=EXPEDITION_HUB_SCENARIO.starterCode;sim.message='Route node loaded'}selected.value=0;buildError.value='';levelNotice.value=''}
 function resolveExpeditionAction(){const actionId=selectedExpeditionAction.value;if(!actionId){sim.message='请先选择一个行动，再确认执行';return}if(expeditionNeedsFirmware.value&&!expeditionBattleVerified.value){sim.message='请先在模拟舱运行固件并抵达出口，再执行遭遇战';return}if(expedition.resolveAction(actionId,expeditionBattleVerified.value||expeditionFirmwareReady.value)){selectedExpeditionAction.value=undefined;expeditionBattleVerified.value=false;if(expeditionNode.value==='boss')expedition.clearNode();else rewardModalVisible.value=true}else if(expeditionNode.value==='shop'&&actionId==='buy'){sim.message='资源不足：购买补给需要 3 credits'} }
 function openRewardModal(){if(expedition.nodeCleared&&expeditionNode.value!=='boss')rewardModalVisible.value=true}
 function confirmReward(){if(selectedReward.value){expedition.choose(selectedReward.value);expedition.clearNode();selectedReward.value=undefined;rewardModalVisible.value=false;resetExpeditionFirmware()}}
@@ -149,7 +149,7 @@ function level(index:number){stop();gameMode.value='story';expeditionScenarioAct
 function showStoryMode(){stop();gameMode.value='story';expeditionScenarioActive.value=false;sim.selectLevel(sim.levelIndex);loadLevelExample(sim.levelIndex)}
 function bankExpedition(){meta.credits+=expedition.stats.credits;if(expedition.stats.nodesCleared>0)meta.runs+=1;if(expedition.stats.victory&&battleGrade.value){const order=['S','A','B','C'];if(!meta.bestGrade||order.indexOf(battleGrade.value)<order.indexOf(meta.bestGrade))meta.bestGrade=battleGrade.value}saveMeta(meta,storage)}
 function newExpedition(){stop();bankExpedition();const seedText=seedInput.value.trim();const parsed=Number(seedText);const seed=Number.isFinite(parsed)&&parsed>=0?Math.floor(parsed):Date.now();expedition.reset(seed);seedInput.value='';showExpeditionMode()}
-function showExpeditionMode(){stop();gameMode.value='expedition';if(expeditionNeedsFirmware.value)enterExpeditionScenario(true);else{expeditionScenarioActive.value=true;sim.setScenario(EXPEDITION_HUB_SCENARIO,expedition.modifiers());sim.status='idle';sim.message='Route node loaded';built.value=false;code.value=EXPEDITION_HUB_SCENARIO.starterCode}}
+function showExpeditionMode(){stop();gameMode.value='expedition';if(expeditionNeedsFirmware.value)enterExpeditionScenario(true);else{expeditionScenarioActive.value=true;sim.setScenario(EXPEDITION_HUB_SCENARIO,expedition.modifiers(meta.upgrades));sim.status='idle';sim.message='Route node loaded';built.value=false;code.value=EXPEDITION_HUB_SCENARIO.starterCode}}
 showExpeditionMode();
 onMounted(()=>window.addEventListener('keydown',handleGlobalKey));
 onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlobalKey)});
@@ -172,7 +172,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
       </div>
       <button class="settings-toggle" @click="settingsOpen=!settingsOpen" aria-label="打开设置">⚙ 设置</button>
     </header>
-    <section v-if="settingsOpen" class="settings-panel"><label><input type="checkbox" v-model="audioEnabled" @change="()=>{try{window.localStorage.setItem('coderogue.audio',audioEnabled?'1':'0')}catch{}}"> 音效反馈</label><span>最近构建：{{buildHistory.length?buildHistory.join(' · '):'暂无记录'}}</span><button @click="showTutorial">重新查看引导</button></section>
+    <section v-if="settingsOpen" class="settings-panel"><label><input type="checkbox" v-model="audioEnabled" @change="()=>{try{window.localStorage.setItem('coderogue.audio',audioEnabled?'1':'0')}catch{}}"> 音效反馈</label><span>最近构建：{{buildHistory.length?buildHistory.join(' · '):'暂无记录'}} · 总资源 {{meta.credits}}</span><button @click="showTutorial">重新查看引导</button><div class="meta-upgrades"><span>机体升级</span><button v-for="u in metaUpgradesCatalog" :key="u.id" @click="purchaseUpgrade(u.id)" :disabled="meta.upgrades.includes(u.id)||meta.credits<u.cost" :title="u.description">{{u.title}}（{{u.cost}}）{{meta.upgrades.includes(u.id)?'已解锁':''}}</button></div></section>
 
     <section class="story-strip">
 
