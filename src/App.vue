@@ -160,6 +160,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
         <div class="brand-mark">CR</div>
         <div><div class="eyebrow">PROGRAMMING ROGUELITE</div><h1>代码浪客 <span>CODE ROGUE</span></h1></div>
       </div>
+      <div class="mode-tabs topbar-tabs"><button :class="{active:gameMode==='story'}" @click="showStoryMode">教学关卡</button><button :class="{active:gameMode==='expedition'}" @click="showExpeditionMode">远征模式</button></div>
       <div class="run-summary">
         <div :class="['status',sim.status]"><small>运行状态</small><strong>{{statusLabel}}</strong><span>TICK {{sim.tick}}</span></div>
         <div class="vital"><div><span>机体</span><b>{{sim.robot.hp}} / {{maxHp}}</b></div><i><em :style="{width:hpPercent}"></em></i></div>
@@ -170,7 +171,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
     <section v-if="settingsOpen" class="settings-panel"><label><input type="checkbox" v-model="audioEnabled" @change="()=>{try{window.localStorage.setItem('coderogue.audio',audioEnabled?'1':'0')}catch{}}"> 音效反馈</label><span>最近构建：{{buildHistory.length?buildHistory.join(' · '):'暂无记录'}}</span><button @click="showTutorial">重新查看引导</button></section>
 
     <section class="story-strip">
-      <div class="mode-tabs"><button :class="{active:gameMode==='story'}" @click="showStoryMode">教学关卡</button><button :class="{active:gameMode==='expedition'}" @click="showExpeditionMode">远征模式</button></div>
+
       <div v-if="gameMode==='story'" class="story-heading"><div><span>STORY MODE</span><strong>教学关卡</strong></div><div class="story-progress"><b>{{completedCount}}</b> / {{STORY_LEVELS.length}} 已完成</div></div>
       <nav v-if="gameMode==='story'" class="levels" aria-label="故事关卡">
         <button v-for="(item,index) in STORY_LEVELS" :key="item.id" :class="{active:index===sim.levelIndex,completed:sim.completedLevels.has(item.id)}" @click="level(index)">
