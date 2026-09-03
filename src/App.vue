@@ -7,7 +7,8 @@ import exitSprite from './assets/exit.svg';
 
 const code=ref(DEFAULT_CODE);
 const sim=reactive(new Simulation());
-const expedition=reactive(new ExpeditionRun(20260903));
+const expedition=reactive(new ExpeditionRun());
+const seedInput=ref('');
 const selectedReward=ref<string>();
 const rewardModalVisible=ref(false);
 const selectedExpeditionAction=ref<string>();
@@ -145,6 +146,7 @@ function confirmReward(){if(selectedReward.value){expedition.choose(selectedRewa
 function settleExpeditionEscape(){expedition.clearNode();resetExpeditionFirmware()}
 function level(index:number){stop();gameMode.value='story';expeditionScenarioActive.value=false;sim.selectLevel(index);loadLevelExample(index);persistProgress();selected.value=0;built.value=false}
 function showStoryMode(){gameMode.value='story';expeditionScenarioActive.value=false;sim.selectLevel(sim.levelIndex);loadLevelExample(sim.levelIndex)}
+function newExpedition(){stop();const seedText=seedInput.value.trim();const parsed=Number(seedText);const seed=Number.isFinite(parsed)&&parsed>=0?Math.floor(parsed):Date.now();expedition.reset(seed);seedInput.value='';showExpeditionMode()}
 function showExpeditionMode(){gameMode.value='expedition';if(expeditionNeedsFirmware.value)enterExpeditionScenario(true);else{expeditionScenarioActive.value=true;sim.setScenario(EXPEDITION_HUB_SCENARIO,expedition.modifiers());sim.status='idle';sim.message='Route node loaded';built.value=false;code.value=EXPEDITION_HUB_SCENARIO.starterCode}}
 showExpeditionMode();
 onMounted(()=>window.addEventListener('keydown',handleGlobalKey));
@@ -182,7 +184,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
     </section>
 
     <section v-if="gameMode==='expedition'" class="expedition-strip">
-      <div class="expedition-head"><div><span>EXPEDITION · SEED {{expedition.seed}}</span><strong>远征路线</strong></div><div class="expedition-stats">节点 {{expedition.stats.nodesCleared}} / {{expedition.route.length}} · 资源 {{expedition.stats.credits}} · 耐久 {{expedition.hull}} / {{expedition.maxHull()}}</div></div>
+      <div class="expedition-head"><div><span>EXPEDITION · SEED {{expedition.seed}}</span><strong>远征路线</strong></div><div class="expedition-stats">节点 {{expedition.stats.nodesCleared}} / {{expedition.route.length}} · 资源 {{expedition.stats.credits}} · 耐久 {{expedition.hull}} / {{expedition.maxHull()}}</div><div class="seed-controls"><input v-model="seedInput" type="number" inputmode="numeric" placeholder="种子" aria-label="远征种子"><button @click="newExpedition">新远征</button></div></div>
       <div v-if="expedition.rewards.length" class="reward-bag"><span>已装备构筑</span><b v-for="reward in expedition.rewards" :key="reward.id">{{reward.title}}</b></div>
       <div class="expedition-route"><span v-for="(node,index) in expedition.route" :key="index" :class="['route-node',`node-${node}`,{current:index===expedition.nodeIndex,cleared:index<expedition.nodeIndex}]">{{index+1}}<small>{{expeditionNodeName(node)}}</small></span></div>
       <div v-if="expeditionLastLog" class="expedition-log">最近行动 <b>{{expeditionLastLog}}</b></div>

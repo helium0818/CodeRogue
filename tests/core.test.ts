@@ -316,4 +316,18 @@ describe('simulation combat', () => {
     expect(run.stats.victory).toBe(false);
     expect(run.stats.nodesCleared).toBe(run.route.length);
   });
+  it('resets an expedition to a new deterministic seed', () => {
+    const run=new ExpeditionRun(42);
+    run.reset(2026);
+    expect(run.seed).toBe(2026);
+    expect(run.route[0]).toBe('combat');
+    expect(run.route[run.route.length-1]).toBe('boss');
+    expect(run.route).toContain('shop');
+    expect(run.route).toContain('event');
+    const twin=new ExpeditionRun(2026);
+    expect(run.route).toEqual(twin.route);
+    expect(run.nodeIndex).toBe(0);
+    expect(run.credits).toBe(0);
+    expect(run.hull).toBe(5);
+  });
 });
