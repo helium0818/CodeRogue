@@ -391,4 +391,21 @@ describe('simulation combat', () => {
     expect(sim.enemy.hp).toBe(2);
     expect(sim.robot.energy).toBe(18);
   });
+  it('scales tactical settlement by battle grade', () => {
+    const base=new ExpeditionRun(42);
+    base.resolveAction('strike',true);
+    const graded=new ExpeditionRun(42);
+    graded.resolveAction('strike',true,'S');
+    expect(graded.lastOutcome.credits).toBe(base.lastOutcome.credits+2);
+    expect(graded.lastOutcome.damageDealt).toBe(base.lastOutcome.damageDealt+2);
+  });
+  it('applies ranged calibration to ranged_attack', () => {
+    const sim=new Simulation();
+    sim.setScenario(EXPEDITION_HUB_SCENARIO, {rangedPower:2, maxEnergy:20});
+    expect(sim.build('void update(){ ranged_attack(); }').ok).toBe(true);
+    sim.reset();
+    sim.enemy={x:3,y:1,hp:3,kind:'slime'};
+    sim.step();
+    expect(sim.enemy.hp).toBe(1);
+  });
 });
