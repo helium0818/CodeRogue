@@ -243,7 +243,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
       </div>
 
       <div class="right-column">
-        <section :class="['panel','world',{threatened:enemyThreat}]">
+        <section :class="['panel','world',{threatened:enemyThreat,failed:sim.status==='failed'||sim.status==='error',success:sim.status==='success'}]">
           <div class="panel-head"><div><span class="panel-kicker">{{expeditionScenarioActive?'EXPEDITION BATTLEFIELD':'SIMULATION CHAMBER'}}</span><strong>{{expeditionScenarioActive?`远征战场 · ${expeditionScenario?.title??''}`:`模拟舱 · ${levelName(currentLevel.id)}`}}</strong></div><div class="coord"><span>X {{sim.robot.x}}</span><span>Y {{sim.robot.y}}</span><b>{{sim.robot.dir}}</b></div></div>
           <div class="objective"><span>{{expeditionScenarioActive?'远征目标':'关卡目标'}}</span><strong>{{expeditionScenarioActive?expeditionScenario?.objective:currentLevel.objective}}</strong><em v-if="sim.enemy.hp>0" :class="{danger:enemyThreat}">{{enemyThreat?'⚠ 接触危险':'史莱姆剩余'}} {{enemyThreat?'':' '+sim.enemy.hp+' HP'}}</em></div>
           <div class="map" :aria-label="expeditionScenarioActive?'远征地图':'关卡地图'">
