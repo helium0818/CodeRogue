@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed,onBeforeUnmount,onMounted,reactive,ref} from 'vue';
-import {DEFAULT_CODE,EXPEDITION_HUB_SCENARIO,EXPEDITION_SCENARIOS,ExpeditionRun,LEVEL_STARTER_CODE,ProgressStorage,Simulation,STORY_LEVELS,loadStoryProgress,saveStoryProgress} from './core';
+import {DEFAULT_CODE,EXPEDITION_HUB_SCENARIO,EXPEDITION_SCENARIOS,ExpeditionRun,LEVEL_STARTER_CODE,ProgressStorage,Simulation,STORY_LEVELS,loadMeta,loadStoryProgress,saveMeta,saveStoryProgress} from './core';
 import robotSprite from './assets/robot.svg';
 import slimeSprite from './assets/slime.svg';
 import exitSprite from './assets/exit.svg';
@@ -38,6 +38,7 @@ let savedFirmwareLevel:string|undefined;
 try{storage=typeof window!=='undefined'?window.localStorage:undefined}catch{storage=undefined}
 try{if(typeof window!=='undefined'){tutorialVisible.value=window.localStorage.getItem('coderogue.tutorial.dismissed')!=='1';audioEnabled.value=window.localStorage.getItem('coderogue.audio')!=='0';savedFirmware=window.localStorage.getItem('coderogue.firmware')??undefined;savedFirmwareLevel=window.localStorage.getItem('coderogue.firmware-level')??undefined;const history=window.localStorage.getItem('coderogue.build-history');if(history)buildHistory.value=JSON.parse(history)}}catch{}
 sim.applyProgress(loadStoryProgress(storage));
+const meta=reactive(loadMeta(storage));
 if(savedFirmware&&savedFirmwareLevel===STORY_LEVELS[sim.levelIndex].id)code.value=savedFirmware;else code.value=LEVEL_STARTER_CODE[STORY_LEVELS[sim.levelIndex].id]??DEFAULT_CODE;
 
 const EDITOR_LINE_HEIGHT=23.8;
@@ -146,7 +147,8 @@ function confirmReward(){if(selectedReward.value){expedition.choose(selectedRewa
 function settleExpeditionEscape(){expedition.clearNode();resetExpeditionFirmware()}
 function level(index:number){stop();gameMode.value='story';expeditionScenarioActive.value=false;sim.selectLevel(index);loadLevelExample(index);persistProgress();selected.value=0;built.value=false}
 function showStoryMode(){gameMode.value='story';expeditionScenarioActive.value=false;sim.selectLevel(sim.levelIndex);loadLevelExample(sim.levelIndex)}
-function newExpedition(){stop();const seedText=seedInput.value.trim();const parsed=Number(seedText);const seed=Number.isFinite(parsed)&&parsed>=0?Math.floor(parsed):Date.now();expedition.reset(seed);seedInput.value='';showExpeditionMode()}
+function bankExpedition(){meta.credits+=expedition.stats.credits;meta.runs+=1;if(expedition.stats.victory&&battleGrade.value){const order=['S','A','B','C'];if(!meta.bestGrade||order.indexOf(battleGrade.value)<order.indexOf(meta.bestGrade))meta.bestGrade=battleGrade.value}saveMeta(meta,storage)}
+function newExpedition(){stop();bankExpedition();const seedText=seedInput.value.trim();const parsed=Number(seedText);const seed=Number.isFinite(parsed)&&parsed>=0?Math.floor(parsed):Date.now();expedition.reset(seed);seedInput.value='';showExpeditionMode()}
 function showExpeditionMode(){gameMode.value='expedition';if(expeditionNeedsFirmware.value)enterExpeditionScenario(true);else{expeditionScenarioActive.value=true;sim.setScenario(EXPEDITION_HUB_SCENARIO,expedition.modifiers());sim.status='idle';sim.message='Route node loaded';built.value=false;code.value=EXPEDITION_HUB_SCENARIO.starterCode}}
 showExpeditionMode();
 onMounted(()=>window.addEventListener('keydown',handleGlobalKey));
@@ -184,7 +186,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
     </section>
 
     <section v-if="gameMode==='expedition'" class="expedition-strip">
-      <div class="expedition-head"><div><span>EXPEDITION · SEED {{expedition.seed}}</span><strong>远征路线</strong></div><div class="expedition-stats">节点 {{expedition.stats.nodesCleared}} / {{expedition.route.length}} · 资源 {{expedition.stats.credits}} · 耐久 {{expedition.hull}} / {{expedition.maxHull()}}</div><div class="seed-controls"><input v-model="seedInput" type="number" inputmode="numeric" placeholder="种子" aria-label="远征种子"><button @click="newExpedition">新远征</button></div></div>
+      <div class="expedition-head"><div><span>EXPEDITION · SEED {{expedition.seed}}</span><strong>远征路线</strong></div><div class="expedition-stats">节点 {{expedition.stats.nodesCleared}} / {{expedition.route.length}} · 本局资源 {{expedition.stats.credits}} · 耐久 {{expedition.hull}} / {{expedition.maxHull()}} · 总资源 {{meta.credits}}</div><div class="seed-controls"><input v-model="seedInput" type="number" inputmode="numeric" placeholder="种子" aria-label="远征种子"><button @click="newExpedition">新远征</button></div></div>
       <div v-if="expedition.rewards.length" class="reward-bag"><span>已装备构筑</span><b v-for="reward in expedition.rewards" :key="reward.id">{{reward.title}}</b></div>
       <div class="expedition-route"><span v-for="(node,index) in expedition.route" :key="index" :class="['route-node',`node-${node}`,{current:index===expedition.nodeIndex,cleared:index<expedition.nodeIndex}]">{{index+1}}<small>{{expeditionNodeName(node)}}</small></span></div>
       <div v-if="expeditionLastLog" class="expedition-log">最近行动 <b>{{expeditionLastLog}}</b></div>

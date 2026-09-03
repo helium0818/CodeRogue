@@ -113,3 +113,7 @@ export class Simulation {pulseUsed=false;shieldReady=false;levelIndex=0;map=STOR
   }
 
 }
+export const META_KEY='coderogue.meta.v1';
+export interface MetaProgress{credits:number;runs:number;bestGrade?:string}
+export function loadMeta(storage?:ProgressStorage):MetaProgress{if(!storage)return{credits:0,runs:0};try{const raw=storage.getItem(META_KEY);if(!raw)return{credits:0,runs:0};const parsed=JSON.parse(raw) as Partial<MetaProgress>;return{credits:typeof parsed.credits==='number'&&parsed.credits>=0?Math.floor(parsed.credits):0,runs:typeof parsed.runs==='number'&&parsed.runs>=0?Math.floor(parsed.runs):0,bestGrade:typeof parsed.bestGrade==='string'?parsed.bestGrade:undefined}}catch{return{credits:0,runs:0}}}
+export function saveMeta(meta:MetaProgress,storage?:ProgressStorage):void{if(!storage)return;try{storage.setItem(META_KEY,JSON.stringify(meta))}catch{}}
