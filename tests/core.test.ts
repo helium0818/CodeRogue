@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadMeta, loadStoryProgress, saveMeta, saveStoryProgress } from '../src/core';
+import { EXPEDITION_HUB_SCENARIO, EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadMeta, loadStoryProgress, saveMeta, saveStoryProgress } from '../src/core';
 
 class MemoryStorage {
   private values = new Map<string,string>();
@@ -371,5 +371,14 @@ describe('simulation combat', () => {
     expect(meta.runs).toBe(3);
     expect(meta.bestGrade).toBe('A');
     expect(meta.upgrades).toEqual(['energy10']);
+  });
+  it('recovers energy during a battle with the regen module', () => {
+    const sim=new Simulation();
+    sim.setScenario(EXPEDITION_HUB_SCENARIO, {energyRegenEvery:1, maxEnergy:20});
+    expect(sim.build('void update(){ wait(); }').ok).toBe(true);
+    sim.reset();
+    sim.robot.energy=10;
+    sim.step();
+    expect(sim.robot.energy).toBe(11);
   });
 });
