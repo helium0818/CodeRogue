@@ -1,7 +1,7 @@
 import {Interpreter,Parser,lex,RoboError,RuntimeHost,RuntimeValue} from './language';
 export type Direction='N'|'E'|'S'|'W'; export interface Robot{x:number;y:number;dir:Direction;hp:number;energy:number} export interface Enemy{x:number;y:number;hp:number;kind?:'slime'|'turret'|'swarm'|'tank';moveEvery?:number;attackEvery?:number;range?:number}
 export interface StoryLevel{id:string;title:string;objective:string;map:string[];enemy?:{x:number;y:number;hp:number}}
-export interface SimulationScenario{id:string;title:string;objective:string;map:string[];enemy?:Enemy;starterCode:string;tactics:string[]}
+export interface SimulationScenario{id:string;title:string;objective:string;map:string[];enemy?:Enemy;starterCode:string;tactics:string[];constraint?:{require?:string[];forbid?:string[]}}
 export interface SimulationModifiers{maxHp:number;maxEnergy:number;attackPower:number;moveEnergyCost:number;incomingDamage:number;startingHp?:number}
 export const STORY_LEVELS:StoryLevel[]=[
  {id:'0-1',title:'First Boot',objective:'让机器人持续前进并抵达出口',map:['########','#R....E#','########']},
@@ -16,10 +16,12 @@ export interface SimulationSnapshot{levelIndex:number;map:string[];robot:Robot;e
 export interface ProfileStats{ticks:number;actions:number;errors:number;durationMs:number;actionCounts:Record<string,number>}
 export type ExpeditionNode='combat'|'elite'|'event'|'shop'|'boss';
 export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScenario>={
- combat:{id:'exp-combat',title:'断线走廊',objective:'击破蜂群并抵达撤离门；蜂群每 1 Tick 逼近并攻击',map:['###########','#R..S....E#','#...###...#','#.........#','###########'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},starterCode:`void update() {
+ combat:{id:'exp-combat',title:'断线走廊',objective:'击破蜂群并抵达撤离门；蜂群每 1 Tick 逼近并攻击',map:['###########','#R..S....E#','#...###...#','#.........#','###########'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},constraint:{require:['for (']},starterCode:`void update() {
   if (enemy_ahead()) {
     attack();
-  } else {
+    return;
+  }
+  for (int i = 0; i < 1; i = i + 1) {
     move_forward();
   }
 }`,tactics:['敌人挡在撤离门前，先用 enemy_ahead() 识别它。','attack() 与 move_forward() 都会占用一拍，击破后再继续前进。']},
@@ -82,7 +84,7 @@ export class Simulation {pulseUsed=false;shieldReady=false;levelIndex=0;map=STOR
  getProgress():StoryProgress{return{completedLevelIds:[...this.completedLevels],selectedLevelId:STORY_LEVELS[this.levelIndex].id}}
  applyProgress(progress:StoryProgress){const validIds=new Set(STORY_LEVELS.map(l=>l.id));this.completedLevels=new Set(progress.completedLevelIds.filter(id=>validIds.has(id)));const selected=progress.selectedLevelId?STORY_LEVELS.findIndex(l=>l.id===progress.selectedLevelId):-1;if(selected>=0)this.levelIndex=selected;this.reset();this.status='idle';this.message='Ready'}
  setBreakpoint(line:number){if(Number.isInteger(line)&&line>0){this.breakpoints.add(line);this.hitBreakpoints.delete(line)}} clearBreakpoints(){this.breakpoints.clear();this.hitBreakpoints.clear()} setWatchpoint(name:string){const normalized=name.trim();if(/^[A-Za-z_][A-Za-z0-9_]*$/.test(normalized)){this.watchpoints.add(normalized);this.watchedValues.delete(normalized);return true}return false} clearWatchpoints(){this.watchpoints.clear();this.watchedValues.clear()} pause(){if(this.status==='running'){this.status='paused';this.message='Paused'}} resume(){if(this.status==='paused'){this.status='running';this.message='Running'}}
- build(code:string){try{this.interpreter=new Interpreter(new Parser(lex(code)).parse(),this.host());this.message='Build succeeded';return{ok:true}}catch(e){const er=e as RoboError;this.message=`Build error ${er.line}:${er.column} - ${er.message}`;return{ok:false,error:er}}}
+ build(code:string){try{const constraint=this.scenario?.constraint;if(constraint){const missing=(constraint.require??[]).filter(tok=>!code.includes(tok));if(missing.length)throw new RoboError(`代码约束：需要包含 ${missing.join('、')}`);const banned=(constraint.forbid??[]).filter(tok=>code.includes(tok));if(banned.length)throw new RoboError(`代码约束：不能包含 ${banned.join('、')}`)}this.interpreter=new Interpreter(new Parser(lex(code)).parse(),this.host());this.message='Build succeeded';return{ok:true}}catch(e){const er=e as RoboError;this.message=`Build error ${er.line}:${er.column} - ${er.message}`;return{ok:false,error:er}}}
  hotReload(code:string){if(this.status!=='paused'&&this.status!=='idle')return{ok:false,error:new RoboError('Hot reload is only available while paused or idle')};const previous=this.snapshot();const result=this.build(code);if(result.ok){this.robot={...previous.robot};this.enemy={...previous.enemy};this.tick=previous.tick;this.frames=previous.frames;this.status='paused';this.message='Hot reload applied';if(this.interpreter)Object.assign(this.interpreter.globals,previous.interpreterGlobals)}return result}
  reset(){const l=this.scenario??STORY_LEVELS[this.levelIndex];this.map=[...l.map];this.robot={x:1,y:1,dir:'E',hp:this.modifiers.startingHp??this.modifiers.maxHp,energy:this.modifiers.maxEnergy};this.enemy={x:l.enemy?.x??-1,y:l.enemy?.y??-1,hp:l.enemy?.hp??0,kind:'slime'};this.tick=0;this.frames=[];this.pulseUsed=false;this.shieldReady=false;this.hitBreakpoints.clear();this.watchedValues.clear();this.coreDump=undefined;this.profile={ticks:0,actions:0,errors:0,durationMs:0,actionCounts:{}};this.runStartedAt=Date.now();this.status='running';this.message='Running'}
  usePulse(){if(this.pulseUsed||this.enemy.hp<=0||this.robot.energy<3||this.status==='idle'||this.status==='success'||this.status==='failed'||this.status==='error')return false;const distance=Math.abs(this.enemy.x-this.robot.x)+Math.abs(this.enemy.y-this.robot.y);if(distance>3)return false;this.pulseUsed=true;this.robot.energy-=3;this.enemy.hp=Math.max(0,this.enemy.hp-1);if(this.enemy.hp===0){this.enemy.x=-1;this.enemy.y=-1}this.message=this.enemy.hp?'脉冲命中：敌方系统短路':'脉冲击破：敌方系统离线';this.frames.push({tick:this.tick,robot:{...this.robot},enemy:{...this.enemy},variables:{},sensors:[],action:'pulse',events:['PULSE']});return true}

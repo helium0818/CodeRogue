@@ -16,11 +16,15 @@ describe('simulation combat', () => {
       expect(result.ok, `${level.id} starter should build`).toBe(true);
     });
   });
-  it('keeps every combat expedition battlefield solvable with the combat firmware', () => {
+  it('keeps every combat expedition battlefield solvable with its starter firmware', () => {
     for (const kind of ['combat','elite','boss'] as const) {
+      const scenario = EXPEDITION_SCENARIOS[kind];
       const sim = new Simulation();
-      sim.setScenario(EXPEDITION_SCENARIOS[kind]);
-      expect(sim.build(LEVEL_STARTER_CODE['1-1']).ok, `${kind} battlefield firmware should build`).toBe(true);
+      sim.setScenario(scenario);
+      if (scenario.constraint) {
+        expect(sim.build(LEVEL_STARTER_CODE['1-1']).ok, `${kind} should reject unconstrained firmware`).toBe(false);
+      }
+      expect(sim.build(scenario.starterCode).ok, `${kind} starter should build`).toBe(true);
       sim.reset();
       for (let i=0;i<160 && sim.status==='running';i++) sim.step();
       expect(sim.status, `${kind} battlefield should be completable`).toBe('success');
@@ -39,7 +43,7 @@ describe('simulation combat', () => {
   });
   it('exposes enemy sensor and resolves attack', () => {
     const sim = new Simulation();
-    sim.build('void update(){ if(enemy_ahead()){ attack(); } else { move_forward(); } }');
+    sim.build('void update(){ if(enemy_ahead()){ attack(); } else { for (int i = 0; i < 1; i = i + 1){ move_forward(); } } }');
     sim.reset();
     for (let i=0;i<12 && sim.status==='running';i++) sim.step();
     expect(sim.frames.some(f=>f.sensors.some(s=>s.name==='enemy_ahead'))).toBe(true);
@@ -253,7 +257,7 @@ describe('simulation combat', () => {
     const sim = new Simulation();
     sim.setScenario(EXPEDITION_SCENARIOS.combat, run.modifiers());
     expect(sim.robot.hp).toBe(7);
-    expect(sim.build('void update(){ if(enemy_ahead()){ attack(); } else { move_forward(); } }').ok).toBe(true);
+    expect(sim.build('void update(){ if(enemy_ahead()){ attack(); } else { for (int i = 0; i < 1; i = i + 1){ move_forward(); } } }').ok).toBe(true);
     sim.reset(); sim.step(); sim.step(); sim.step(); sim.step();
     expect(sim.enemy.hp).toBe(0);
     expect(sim.robot.hp).toBe(7);
@@ -333,8 +337,8 @@ describe('simulation combat', () => {
   it('recognizes new sensors and lets shield block the next hit', () => {
     const sim=new Simulation();
     sim.setScenario(EXPEDITION_SCENARIOS.combat);
-    expect(sim.build('void update(){ if(enemy_near()){ shield(); } if(low_energy()){ wait(); } }').ok).toBe(true);
-    sim.build('void update(){ if(enemy_near()){ shield(); } }');
+    expect(sim.build('void update(){ if(enemy_near()){ shield(); } if(low_energy()){ for (int i = 0; i < 1; i = i + 1){ wait(); } } }').ok).toBe(true);
+    sim.build('void update(){ if(enemy_near()){ shield(); } for (int i = 0; i < 1; i = i + 1){ wait(); } }');
     sim.reset();
     sim.enemy.x=2; sim.enemy.y=1;
     sim.step();
