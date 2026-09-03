@@ -1,5 +1,5 @@
 import {Interpreter,Parser,lex,RoboError,RuntimeHost,RuntimeValue} from './language';
-export type Direction='N'|'E'|'S'|'W'; export interface Robot{x:number;y:number;dir:Direction;hp:number;energy:number} export interface Enemy{x:number;y:number;hp:number;kind?:'slime';moveEvery?:number;attackEvery?:number}
+export type Direction='N'|'E'|'S'|'W'; export interface Robot{x:number;y:number;dir:Direction;hp:number;energy:number} export interface Enemy{x:number;y:number;hp:number;kind?:'slime'|'turret'|'swarm'|'tank';moveEvery?:number;attackEvery?:number;range?:number}
 export interface StoryLevel{id:string;title:string;objective:string;map:string[];enemy?:{x:number;y:number;hp:number}}
 export interface SimulationScenario{id:string;title:string;objective:string;map:string[];enemy?:Enemy;starterCode:string;tactics:string[]}
 export interface SimulationModifiers{maxHp:number;maxEnergy:number;attackPower:number;moveEnergyCost:number;incomingDamage:number;startingHp?:number}
@@ -16,14 +16,14 @@ export interface SimulationSnapshot{levelIndex:number;map:string[];robot:Robot;e
 export interface ProfileStats{ticks:number;actions:number;errors:number;durationMs:number;actionCounts:Record<string,number>}
 export type ExpeditionNode='combat'|'elite'|'event'|'shop'|'boss';
 export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScenario>={
- combat:{id:'exp-combat',title:'断线走廊',objective:'击破巡逻体并抵达撤离门；巡逻体每 3 Tick 逼近、每 2 Tick 攻击',map:['###########','#R..S....E#','#...###...#','#.........#','###########'],enemy:{x:4,y:1,hp:3,moveEvery:3,attackEvery:2},starterCode:`void update() {
+ combat:{id:'exp-combat',title:'断线走廊',objective:'击破蜂群并抵达撤离门；蜂群每 1 Tick 逼近并攻击',map:['###########','#R..S....E#','#...###...#','#.........#','###########'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},starterCode:`void update() {
   if (enemy_ahead()) {
     attack();
   } else {
     move_forward();
   }
 }`,tactics:['敌人挡在撤离门前，先用 enemy_ahead() 识别它。','attack() 与 move_forward() 都会占用一拍，击破后再继续前进。']},
- elite:{id:'exp-elite',title:'压迫侧廊',objective:'精英每 2 Tick 逼近并攻击；击破后绕过隔墙撤离',map:['#########','#R..S...#','#.###...#','#.....E.#','#########'],enemy:{x:4,y:1,hp:4,moveEvery:2,attackEvery:2},starterCode:`void update() {
+ elite:{id:'exp-elite',title:'压迫侧廊',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R..S...#','#.###...#','#.....E.#','#########'],enemy:{x:4,y:1,hp:4,attackEvery:2,kind:'turret',range:3},starterCode:`void update() {
   if (enemy_ahead()) {
     attack();
   } else if (wall_ahead()) {
@@ -31,7 +31,7 @@ export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScena
   } else {
     move_forward();
   }
-}`,tactics:['精英每 2 Tick 会向你靠近，拖延会损失机体耐久。','敌人倒下后，墙会迫使你转弯；让感知优先于移动。']},
+}`,tactics:['炮台不会移动，但会在远处持续射击，尽快靠近并击破。','敌人倒下后，墙会迫使你转弯；让感知优先于移动。']},
  boss:{id:'exp-boss',title:'核心熔炉',objective:'核心守卫每 3 Tick 逼近并攻击；击破核心并撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:4,moveEvery:3,attackEvery:2},starterCode:`void update() {
   if (enemy_ahead()) {
     attack();
@@ -90,4 +90,26 @@ export class Simulation {pulseUsed=false;levelIndex=0;map=STORY_LEVELS[0].map;ro
  rollback(snapshot:SimulationSnapshot){this.levelIndex=snapshot.levelIndex;this.scenario=snapshot.scenario?{...snapshot.scenario,map:[...snapshot.scenario.map],enemy:snapshot.scenario.enemy?{...snapshot.scenario.enemy}:undefined}:undefined;this.map=[...snapshot.map];this.robot={...snapshot.robot};this.enemy={...snapshot.enemy};this.tick=snapshot.tick;this.frames=snapshot.frames.map(frame=>({...frame,robot:{...frame.robot},enemy:{...frame.enemy},variables:{...frame.variables},sensors:frame.sensors.map(sensor=>({...sensor}))}));this.status=snapshot.status;this.message='Rolled back to snapshot';if(this.interpreter)Object.assign(this.interpreter.globals,snapshot.interpreterGlobals)}
   step(){if(!this.interpreter||this.status!=='running')return;const result=this.interpreter.runTick();this.tick++;this.resolveEnemy();const ey=this.map.findIndex(r=>r.includes('E'));const ex=this.map[ey]?.indexOf('E')??6;const events:string[]=[];if(this.robot.x===ex&&this.robot.y===ey&&this.enemy.hp<=0){this.status='success';this.message='Exit reached';if(!this.scenario)this.completedLevels.add(STORY_LEVELS[this.levelIndex].id);events.push('EXIT_REACHED')}if(this.robot.hp<=0){this.status='failed';this.message='Robot destroyed';events.push('ROBOT_DESTROYED')}if(result.error){this.status='error';this.message=result.error;events.push('RUNTIME_ERROR')}for(const name of this.watchpoints){const value=result.variables[name];const previous=this.watchedValues.get(name);if(this.watchedValues.has(name)&&previous!==value){events.push(`WATCHPOINT:${name}`);if(this.status==='running'){this.status='paused';this.message=`Watchpoint changed: ${name}`}}this.watchedValues.set(name,value)}if(this.status==='running'&&result.sourceLine&&this.breakpoints.has(result.sourceLine)&&!this.hitBreakpoints.has(result.sourceLine)){this.status='paused';this.message=`Breakpoint hit at line ${result.sourceLine}`;this.hitBreakpoints.add(result.sourceLine);events.push('BREAKPOINT')}this.frames.push({tick:this.tick,sourceLine:result.sourceLine??result.errorLine,robot:{...this.robot},enemy:{...this.enemy},variables:result.variables,sensors:result.sensors,action:result.action,events,error:result.error});if(this.frames.length>200)this.frames.shift();if(result.error||this.robot.hp<=0){this.coreDump={cause:result.error?'runtime_error':'robot_destroyed',tick:this.tick,sourceLine:result.sourceLine??result.errorLine,message:result.error??'Robot destroyed',robot:{...this.robot},enemy:{...this.enemy},variables:{...result.variables},recentFrames:this.frames.slice(-12).map(frame=>({...frame,robot:{...frame.robot},enemy:{...frame.enemy},variables:{...frame.variables},sensors:frame.sensors.map(sensor=>({...sensor}),)}))}}return result}
  private host():RuntimeHost{return{sense:(n)=>n==='wall_ahead'?this.isWall(this.front().x,this.front().y):n==='enemy_ahead'?this.enemy.hp>0&&this.front().x===this.enemy.x&&this.front().y===this.enemy.y:n==='low_hp'?this.robot.hp<=2:false,action:(n)=>{if(this.robot.energy<=0){this.status='failed';this.message='Energy depleted';return}if(n==='move_forward'){const p=this.front();if(!this.isWall(p.x,p.y)&&!(this.enemy.hp>0&&p.x===this.enemy.x&&p.y===this.enemy.y)){this.robot.x=p.x;this.robot.y=p.y}this.robot.energy=Math.max(0,this.robot.energy-this.modifiers.moveEnergyCost)}else if(n==='turn_right'){this.robot.dir={N:'E',E:'S',S:'W',W:'N'}[this.robot.dir]as Direction;this.robot.energy=Math.max(0,this.robot.energy-1)}else if(n==='turn_left'){this.robot.dir={N:'W',W:'S',S:'E',E:'N'}[this.robot.dir]as Direction;this.robot.energy=Math.max(0,this.robot.energy-1)}else if(n==='attack'&&this.enemy.hp>0&&this.front().x===this.enemy.x&&this.front().y===this.enemy.y){this.enemy.hp=Math.max(0,this.enemy.hp-this.modifiers.attackPower);if(this.enemy.hp===0){this.enemy.x=-1;this.enemy.y=-1}this.message=this.enemy.hp?'Slime hit':'Slime destroyed';this.robot.energy=Math.max(0,this.robot.energy-1)}}}}
- private front(){const d={N:[0,-1],E:[1,0],S:[0,1],W:[-1,0]}[this.robot.dir];return{x:this.robot.x+d[0],y:this.robot.y+d[1]}} private isWall(x:number,y:number){return this.map[y]?.[x]==='#'} private resolveEnemy(){if(this.enemy.hp<=0)return;const adjacent=()=>Math.abs(this.enemy.x-this.robot.x)+Math.abs(this.enemy.y-this.robot.y)<=1;const attackEvery=this.enemy.attackEvery??this.enemy.moveEvery??3;if(adjacent()&&this.tick%attackEvery===0){this.robot.hp=Math.max(0,this.robot.hp-this.modifiers.incomingDamage);this.message='Enemy strike'}if(this.enemy.moveEvery&&this.tick%this.enemy.moveEvery===0){const dx=this.robot.x-this.enemy.x;const dy=this.robot.y-this.enemy.y;const attempts=Math.abs(dx)>=Math.abs(dy)?[{x:this.enemy.x+Math.sign(dx),y:this.enemy.y},{x:this.enemy.x,y:this.enemy.y+Math.sign(dy)}]:[{x:this.enemy.x,y:this.enemy.y+Math.sign(dy)},{x:this.enemy.x+Math.sign(dx),y:this.enemy.y}];for(const next of attempts){if((next.x!==this.robot.x||next.y!==this.robot.y)&&!this.isWall(next.x,next.y)){this.enemy.x=next.x;this.enemy.y=next.y;break}}}}}
+ private front(){const d={N:[0,-1],E:[1,0],S:[0,1],W:[-1,0]}[this.robot.dir];return{x:this.robot.x+d[0],y:this.robot.y+d[1]}} private isWall(x:number,y:number){return this.map[y]?.[x]==='#'} private resolveEnemy(){
+    if(this.enemy.hp<=0)return;
+    const dist=()=>Math.abs(this.enemy.x-this.robot.x)+Math.abs(this.enemy.y-this.robot.y);
+    const kind=this.enemy.kind??'slime';
+    const attackEvery=this.enemy.attackEvery??(kind==='swarm'?1:3);
+    const inRange=kind==='turret'?dist()<=(this.enemy.range??3):dist()<=1;
+    if(inRange&&this.tick%attackEvery===0){
+      let damage=this.modifiers.incomingDamage;
+      if(kind==='tank')damage+=1;
+      this.robot.hp=Math.max(0,this.robot.hp-damage);
+      this.message=kind==='turret'?'敌方炮台射击':'Enemy strike';
+    }
+    if(kind==='turret')return;
+    const moveEvery=this.enemy.moveEvery??(kind==='swarm'?1:kind==='tank'?4:3);
+    if(this.tick%moveEvery===0){
+      const dx=this.robot.x-this.enemy.x;
+      const dy=this.robot.y-this.enemy.y;
+      const attempts=Math.abs(dx)>=Math.abs(dy)?[{x:this.enemy.x+Math.sign(dx),y:this.enemy.y},{x:this.enemy.x,y:this.enemy.y+Math.sign(dy)}]:[{x:this.enemy.x,y:this.enemy.y+Math.sign(dy)},{x:this.enemy.x+Math.sign(dx),y:this.enemy.y}];
+      for(const next of attempts){if((next.x!==this.robot.x||next.y!==this.robot.y)&&!this.isWall(next.x,next.y)){this.enemy.x=next.x;this.enemy.y=next.y;break;}}
+    }
+  }
+
+}
