@@ -25,23 +25,21 @@ export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScena
     move_forward();
   }
 }`,tactics:['敌人挡在撤离门前，先用 enemy_ahead() 识别它。','attack() 与 move_forward() 都会占用一拍，击破后再继续前进。']},
- elite:{id:'exp-elite',title:'压迫侧廊',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R..S...#','#.###...#','#.....E.#','#########'],enemy:{x:4,y:1,hp:4,attackEvery:2,kind:'turret',range:3},starterCode:`void update() {
-  if (enemy_ahead()) {
-    attack();
-  } else if (wall_ahead()) {
-    turn_right();
-  } else {
-    move_forward();
-  }
+ elite:{id:'exp-elite',title:'压迫侧廊',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R..S...#','#.###...#','#.....E.#','#########'],enemy:{x:4,y:1,hp:4,attackEvery:2,kind:'turret',range:3},constraint:{require:['void advance()']},starterCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_ahead()) { attack(); }
+  else { advance(); }
 }`,tactics:['炮台不会移动，但会在远处持续射击，尽快靠近并击破。','敌人倒下后，墙会迫使你转弯；让感知优先于移动。']},
- boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:3,kind:'tank'},starterCode:`void update() {
-  if (enemy_ahead()) {
-    attack();
-  } else if (wall_ahead()) {
-    turn_right();
-  } else {
-    move_forward();
-  }
+ boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:3,kind:'tank'},starterCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_ahead()) { attack(); }
+  else { advance(); }
 }`,tactics:['重装核心移动慢但每次攻击更重，尽快击破以缩短受击窗口。','“弱点扫描仪”可将 attack() 提高到 2 点伤害，是应对重装核心的关键。']}
 };
 export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
