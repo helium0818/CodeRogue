@@ -164,3 +164,6 @@ footer{display:flex;justify-content:space-between;gap:20px;padding-top:14px;colo
 .meta-upgrades span{color:#f1bd59;font-size:10px;font-weight:700}
 .meta-upgrades button{height:26px;padding:0 8px;background:#182632;border:1px solid #334354;color:#c3d1d8;font-size:9px;cursor:pointer}
 .meta-upgrades button:disabled{opacity:.45;cursor:not-allowed}
+
+.risk-toggle{display:flex;align-items:center;gap:6px;color:#f1bd59;font-size:9px;cursor:pointer;user-select:none}
+.risk-toggle input{accent-color:#f1bd59;width:13px;height:13px}
