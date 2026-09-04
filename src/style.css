@@ -192,3 +192,6 @@ footer{display:flex;justify-content:space-between;gap:20px;padding-top:14px;colo
 
 .route-node.unknown{color:#5d6b7a;border-style:dashed}
 .route-node.unknown:before{background:#3a4754;color:#3a4754;box-shadow:none}
+
+.auto-demo-button{height:30px;padding:0 11px;background:#16232e;border:1px solid #3b5b6b;color:#9bd7ec;font-size:10px;font-weight:700;cursor:pointer}
+.auto-demo-button:hover{border-color:#65dfbd;color:#d9f6ec;background:#15332c}
