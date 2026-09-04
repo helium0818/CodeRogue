@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": {"dev": "vite", "build": "tsc -b && vite build", "test": "vitest run"},
+  "scripts": {"dev": "vite", "build": "tsc -b && vite build", "test": "vitest run", "demo": "vitest run tests/demo.test.ts"},
   "dependencies": {"@vitejs/plugin-vue": "latest", "vite": "latest", "typescript": "latest", "vue": "latest"},
   "devDependencies": {"vitest": "latest", "jsdom": "latest"}
 }
