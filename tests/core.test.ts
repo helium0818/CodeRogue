@@ -425,6 +425,28 @@ describe('simulation combat', () => {
     expect(repair.robot.hp).toBe(4);
     expect(repair.robot.energy).toBe(17);
   });
+  it('supports retreating and exposes enemy health as a numeric sensor', () => {
+    const sim=new Simulation();
+    sim.selectLevel(0);
+    expect(sim.build('int hp=0; void update(){ hp=enemy_hp(); back(); }').ok).toBe(true);
+    sim.reset();
+    sim.robot.x=3;
+    sim.enemy={x:5,y:1,hp:4,kind:'slime'};
+    sim.step();
+    expect(sim.robot.x).toBe(2);
+    expect(sim.frames[0].variables.hp).toBe(4);
+    expect(sim.frames[0].sensors).toContainEqual({name:'enemy_hp',value:4});
+  });
+  it('limits a build to three modules and scales the supply cost with equipped modules', () => {
+    const run=new ExpeditionRun(42);
+    for(const reward of run.choices()) expect(run.choose(reward.id)).toBe(true);
+    expect(run.rewards).toHaveLength(3);
+    expect(run.shopBuyCost()).toBe(6);
+    run.nodeIndex=1;
+    expect(run.choose('dash')).toBe(true);
+    expect(run.rewards).toHaveLength(3);
+    expect(run.credits).toBe(2);
+  });
   it('alternates combat battlefield maps by seed and stays solvable', () => {
     const a=pickScenario('combat',1,0);
     const b=pickScenario('combat',1,1);
