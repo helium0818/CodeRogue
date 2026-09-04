@@ -24,7 +24,7 @@ describe('simulation combat', () => {
       if (scenario.constraint) {
         expect(sim.build(LEVEL_STARTER_CODE['1-1']).ok, `${kind} should reject unconstrained firmware`).toBe(false);
       }
-      expect(sim.build(scenario.starterCode).ok, `${kind} starter should build`).toBe(true);
+      expect(sim.build((scenario.solutionCode ?? scenario.starterCode)).ok, `${kind} starter should build`).toBe(true);
       sim.reset();
       for (let i=0;i<160 && sim.status==='running';i++) sim.step();
       expect(sim.status, `${kind} battlefield should be completable`).toBe('success');
@@ -35,7 +35,7 @@ describe('simulation combat', () => {
       const scenario=EXPEDITION_SCENARIOS[kind];
       const sim=new Simulation();
       sim.setScenario(scenario);
-      expect(sim.build(scenario.starterCode).ok, `${kind} starter should build`).toBe(true);
+      expect(sim.build((scenario.solutionCode ?? scenario.starterCode)).ok, `${kind} starter should build`).toBe(true);
       sim.reset();
       for(let i=0;i<160&&sim.status==='running';i++)sim.step();
       expect(sim.status, `${kind} starter should reach the exit`).toBe('success');
@@ -49,12 +49,12 @@ describe('simulation combat', () => {
     expect(sim.frames.some(f=>f.sensors.some(s=>s.name==='enemy_ahead'))).toBe(true);
   });
   it('allows one costly pulse intervention when an enemy is near', () => {
-    const sim=new Simulation(); sim.setScenario(EXPEDITION_SCENARIOS.combat); expect(sim.build(EXPEDITION_SCENARIOS.combat.starterCode).ok).toBe(true); sim.reset(); sim.step(); sim.step();
+    const sim=new Simulation(); sim.setScenario(EXPEDITION_SCENARIOS.combat); expect(sim.build((EXPEDITION_SCENARIOS.combat.solutionCode ?? EXPEDITION_SCENARIOS.combat.starterCode)).ok).toBe(true); sim.reset(); sim.step(); sim.step();
     const before=sim.enemy.hp; const energyBefore=sim.robot.energy; expect(sim.usePulse()).toBe(true); expect(sim.enemy.hp).toBe(before-1); expect(sim.robot.energy).toBe(energyBefore-3); expect(sim.usePulse()).toBe(false); expect(sim.frames[sim.frames.length-1]?.action).toBe('pulse');
   });
   it('separates enemy pursuit from its contact attack cadence', () => {
     const sim=new Simulation(); sim.setScenario(EXPEDITION_SCENARIOS.combat);
-    expect(sim.build(EXPEDITION_SCENARIOS.combat.starterCode).ok).toBe(true); sim.reset();
+    expect(sim.build((EXPEDITION_SCENARIOS.combat.solutionCode ?? EXPEDITION_SCENARIOS.combat.starterCode)).ok).toBe(true); sim.reset();
     for(let i=0;i<12&&sim.status==='running';i++) sim.step();
     expect(sim.status).toBe('success');
     expect(sim.robot.hp).toBeGreaterThanOrEqual(4);
@@ -266,11 +266,11 @@ describe('simulation combat', () => {
     const scenario=EXPEDITION_SCENARIOS.boss;
     const baseline=new Simulation();
     baseline.setScenario(scenario);
-    baseline.build(scenario.starterCode); baseline.reset();
+    baseline.build((scenario.solutionCode ?? scenario.starterCode)); baseline.reset();
     for(let i=0;i<160&&baseline.status==='running';i++)baseline.step();
     const upgraded=new Simulation();
     upgraded.setScenario(scenario,{attackPower:2});
-    upgraded.build(scenario.starterCode); upgraded.reset();
+    upgraded.build((scenario.solutionCode ?? scenario.starterCode)); upgraded.reset();
     for(let i=0;i<160&&upgraded.status==='running';i++)upgraded.step();
     expect(upgraded.status).toBe('success');
     expect(upgraded.tick).toBeLessThan(baseline.tick);
@@ -431,7 +431,7 @@ describe('simulation combat', () => {
     expect(a.id).not.toBe(b.id);
     const sim=new Simulation();
     sim.setScenario(b);
-    expect(sim.build(b.starterCode).ok).toBe(true);
+    expect(sim.build((b.solutionCode ?? b.starterCode)).ok).toBe(true);
     sim.reset();
     for(let i=0;i<120&&sim.status==='running';i++)sim.step();
     expect(sim.status).toBe('success');
@@ -444,7 +444,7 @@ describe('simulation combat', () => {
         const scenario=pickScenario(node as 'combat'|'elite'|'boss', run.seed, run.nodeIndex);
         const sim=new Simulation();
         sim.setScenario(scenario, run.modifiers());
-        expect(sim.build(scenario.starterCode).ok, `${node} starter should build`).toBe(true);
+        expect(sim.build((scenario.solutionCode ?? scenario.starterCode)).ok, `${node} starter should build`).toBe(true);
         sim.reset();
         for(let i=0;i<200&&sim.status==='running';i++)sim.step();
         expect(sim.status, `${node} should be completable`).toBe('success');

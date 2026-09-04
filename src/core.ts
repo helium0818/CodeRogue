@@ -2,7 +2,7 @@ import {Interpreter,Parser,lex,RoboError,RuntimeHost,RuntimeValue} from './langu
 export type Direction='N'|'E'|'S'|'W'; export interface Robot{x:number;y:number;dir:Direction;hp:number;energy:number} export interface Enemy{x:number;y:number;hp:number;kind?:'slime'|'turret'|'swarm'|'tank';moveEvery?:number;attackEvery?:number;range?:number}
 export interface Item{x:number;y:number;kind:'energy'|'heal'}
 export interface StoryLevel{id:string;title:string;objective:string;map:string[];enemy?:{x:number;y:number;hp:number}}
-export interface SimulationScenario{id:string;title:string;objective:string;map:string[];enemy?:Enemy;starterCode:string;tactics:string[];constraint?:{require?:string[];forbid?:string[]};items?:Item[]}
+export interface SimulationScenario{id:string;title:string;objective:string;map:string[];enemy?:Enemy;starterCode:string;solutionCode?:string;tactics:string[];constraint?:{require?:string[];forbid?:string[]};items?:Item[]}
 export interface SimulationModifiers{maxHp:number;maxEnergy:number;attackPower:number;moveEnergyCost:number;incomingDamage:number;startingHp?:number;energyRegenEvery?:number;rangedPower?:number}
 export const STORY_LEVELS:StoryLevel[]=[
  {id:'0-1',title:'First Boot',objective:'让机器人持续前进并抵达出口',map:['########','#R....E#','########']},
@@ -18,6 +18,10 @@ export interface ProfileStats{ticks:number;actions:number;errors:number;duration
 export type ExpeditionNode='combat'|'elite'|'event'|'shop'|'boss';
 export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScenario>={
  combat:{id:'exp-combat',title:'断线走廊',objective:'击破蜂群并抵达撤离门；蜂群每 1 Tick 逼近并攻击',map:['###########','#R..S....E#','#...###...#','#.........#','###########'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:7,y:1,kind:'heal'}],constraint:{require:['for (']},starterCode:`void update() {
+  for (int i = 0; i < 1; i = i + 1) {
+    move_forward();
+  }
+}`,solutionCode:`void update() {
   if (enemy_ahead()) {
     attack();
     return;
@@ -27,6 +31,11 @@ export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScena
   }
 }`,tactics:['敌人挡在撤离门前，先用 enemy_ahead() 识别它。','attack() 与 move_forward() 都会占用一拍，击破后再继续前进。']},
  elite:{id:'exp-elite',title:'压迫侧廊',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R..S...#','#.###...#','#.....E.#','#########'],enemy:{x:4,y:1,hp:4,attackEvery:2,kind:'turret',range:3},items:[{x:2,y:1,kind:'energy'},{x:5,y:3,kind:'heal'}],constraint:{require:['void advance()']},starterCode:`void advance() {
+  move_forward();
+}
+void update() {
+  advance();
+}`,solutionCode:`void advance() {
   if (wall_ahead()) { turn_right(); }
   else { move_forward(); }
 }
@@ -35,6 +44,10 @@ void update() {
   else { advance(); }
 }`,tactics:['炮台不会移动，但会在远处持续射击，尽快靠近并击破。','敌人倒下后，墙会迫使你转弯；让感知优先于移动。']},
  boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:3,kind:'tank'},items:[{x:2,y:1,kind:'energy'},{x:2,y:3,kind:'heal'}],constraint:{require:['[']},starterCode:`int path[2];
+void update() {
+  path[0] = path[0] + 1;
+  move_forward();
+}`,solutionCode:`int path[2];
 void advance() {
   if (wall_ahead()) { turn_right(); }
   else { move_forward(); }
@@ -46,6 +59,10 @@ void update() {
 }`,tactics:['重装核心移动慢但每次攻击更重，尽快击破以缩短受击窗口。','“弱点扫描仪”可将 attack() 提高到 2 点伤害，是应对重装核心的关键。']}
 };
 const COMBAT_VARIANT_B:SimulationScenario={id:'exp-combat-b',title:'回廊突破',objective:'击破巡逻体并抵达撤离门；巡逻体每 2 Tick 逼近、每 2 Tick 攻击',map:['###########','#R...S...E#','#.........#','#.........#','###########'],enemy:{x:5,y:1,hp:3,moveEvery:2,attackEvery:2,kind:'slime'},constraint:{require:['for (']},starterCode:`void update() {
+  for (int i = 0; i < 1; i = i + 1) {
+    move_forward();
+  }
+}`,solutionCode:`void update() {
   if (enemy_ahead()) {
     attack();
     return;
