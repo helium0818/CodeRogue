@@ -195,3 +195,6 @@ footer{display:flex;justify-content:space-between;gap:20px;padding-top:14px;colo
 
 .auto-demo-button{height:30px;padding:0 11px;background:#16232e;border:1px solid #3b5b6b;color:#9bd7ec;font-size:10px;font-weight:700;cursor:pointer}
 .auto-demo-button:hover{border-color:#65dfbd;color:#d9f6ec;background:#15332c}
+
+.repair-button{border-color:#3f8e78!important;color:#76e2c4!important;background:#142621!important}
+.repair-button:hover:not(:disabled){border-color:#86f2d3!important;color:#d9f6ec!important;box-shadow:0 0 16px #65dfbd44!important}

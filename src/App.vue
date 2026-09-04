@@ -135,6 +135,8 @@ function startTimer(){clearTimer();timer=window.setInterval(()=>{sim.step();sele
 function run(){if(gameMode.value==='expedition'&&!expeditionNeedsFirmware.value){sim.message='这是路线节点，请先选择上方行动';return}if(!built.value)build();if(!built.value)return;sim.reset();persistProgress();selected.value=0;running.value=true;stepMode.value=false;beep('run');startTimer()}
 function stepOnce(){if(running.value||gameMode.value==='expedition'&&!expeditionNeedsFirmware.value)return;if(!built.value)build();if(!built.value)return;if(sim.status==='idle'||sim.status==='success'||sim.status==='failed'||sim.status==='error')sim.reset();sim.status='running';sim.step();selected.value=Math.max(0,sim.frames.length-1);if(sim.status==='success'){completeExpeditionBattle();beep('success')}if(sim.status==='failed'||sim.status==='error')beep('fail');stepMode.value=true}
 function pulse(){if(sim.usePulse()){selected.value=Math.max(0,sim.frames.length-1);beep('run')}}
+function manualRepair(){if(sim.useRepair()){selected.value=Math.max(0,sim.frames.length-1);beep('run')}}
+const repairAvailable=computed(()=>gameMode.value==='expedition'&&expeditionNeedsFirmware.value&&sim.robot.hp<maxHp.value&&sim.robot.energy>=4&&(sim.status==='running'||sim.status==='paused'));
 function handleGlobalKey(event:KeyboardEvent){const target=event.target as HTMLElement|null;if(target?.tagName==='TEXTAREA'||target?.tagName==='INPUT'||target?.isContentEditable)return;if(event.code==='Space'){event.preventDefault();if(running.value||sim.status==='paused')togglePause()}else if(event.key.toLowerCase()==='n'&&gameMode.value==='expedition'){event.preventDefault();stepOnce()}}
 function stop(){running.value=false;clearTimer();sim.status='idle';sim.message='Stopped'}
 function togglePause(){if(sim.status==='paused'){sim.resume();running.value=true;beep('run');startTimer()}else if(sim.status==='running'){sim.pause();running.value=false;clearTimer()}}
@@ -229,7 +231,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
             <button class="run-button" @click="run" :disabled="running || sim.status==='paused' || (gameMode==='expedition'&&!expeditionNeedsFirmware)"><span>▶</span> 运行</button>
             <button @click="togglePause" :disabled="!running && sim.status!=='paused'"><span>{{sim.status==='paused'?'▶':'Ⅱ'}}</span> {{sim.status==='paused'?'继续':'暂停'}}</button>
             <button v-if="gameMode==='expedition'" :class="['step-button',{active:stepMode}]" @click="stepOnce" :disabled="running || !expeditionNeedsFirmware"><span>⏭</span> 单步</button>
-            <button v-if="gameMode==='expedition'" class="pulse-button" @click="pulse" :disabled="!pulseAvailable"><span>✦</span> 脉冲干扰 <small>{{sim.pulseUsed?'已使用':'耗能 3'}}</small></button>
+            <button v-if="gameMode==='expedition'" class="pulse-button" @click="pulse" :disabled="!pulseAvailable"><span>✦</span> 脉冲干扰 <small>{{sim.pulseUsed?'已使用':'耗能 3'}}</small></button><button v-if="gameMode==='expedition'" class="pulse-button repair-button" @click="manualRepair" :disabled="!repairAvailable"><span>✚</span> 紧急修理 <small>耗能 4</small></button>
             <button class="quiet" @click="stop"><span>■</span> 停止</button>
             <label for="run-speed">速度<select id="run-speed" v-model.number="speed" aria-label="运行速度"><option :value="1000">1×</option><option :value="500">2×</option><option :value="250">4×</option></select></label>
           </div>
