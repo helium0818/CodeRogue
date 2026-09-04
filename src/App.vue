@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed,onBeforeUnmount,onMounted,reactive,ref} from 'vue';
-import {DEFAULT_CODE,EXPEDITION_HUB_SCENARIO,EXPEDITION_SCENARIOS,ExpeditionRun,LEVEL_STARTER_CODE,ProgressStorage,Simulation,STORY_LEVELS,gradeBattle,loadMeta,loadStoryProgress,saveMeta,saveStoryProgress} from './core';
+import {DEFAULT_CODE,EXPEDITION_HUB_SCENARIO,ExpeditionRun,LEVEL_STARTER_CODE,ProgressStorage,Simulation,STORY_LEVELS,gradeBattle,loadMeta,loadStoryProgress,pickScenario,saveMeta,saveStoryProgress} from './core';
 import robotSprite from './assets/robot.svg';
 import slimeSprite from './assets/slime.svg';
 import exitSprite from './assets/exit.svg';
@@ -69,7 +69,7 @@ const expeditionFirmwareReady=computed(()=>!expeditionNeedsFirmware.value||sim.s
 const expeditionScenarioActive=ref(false);
 const expeditionBattleVerified=ref(false);
 const battleGrade=ref('—');
-const expeditionScenario=computed(()=>expeditionNeedsFirmware.value?EXPEDITION_SCENARIOS[expeditionNode.value as 'combat'|'elite'|'boss']:(expeditionNode.value?{...EXPEDITION_HUB_SCENARIO,title:expeditionNode.value==='event'?'异常事件': '补给商店'}:undefined));
+const expeditionScenario=computed(()=>expeditionNeedsFirmware.value?pickScenario(expeditionNode.value as 'combat'|'elite'|'boss',expedition.seed,expedition.nodeIndex):(expeditionNode.value?{...EXPEDITION_HUB_SCENARIO,title:expeditionNode.value==='event'?'异常事件': '补给商店'}:undefined));
 const gameMode=ref<'story'|'expedition'>('expedition');
 
 const levelNames:Record<string,string>={

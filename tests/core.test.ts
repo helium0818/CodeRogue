@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EXPEDITION_HUB_SCENARIO, EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadMeta, loadStoryProgress, saveMeta, saveStoryProgress } from '../src/core';
+import { EXPEDITION_HUB_SCENARIO, EXPEDITION_SCENARIOS, ExpeditionRun, LEVEL_STARTER_CODE, Simulation, STORY_LEVELS, STORY_PROGRESS_KEY, gradeBattle, loadMeta, loadStoryProgress, pickScenario, saveMeta, saveStoryProgress } from '../src/core';
 
 class MemoryStorage {
   private values = new Map<string,string>();
@@ -424,5 +424,16 @@ describe('simulation combat', () => {
     repair.step();
     expect(repair.robot.hp).toBe(4);
     expect(repair.robot.energy).toBe(17);
+  });
+  it('alternates combat battlefield maps by seed and stays solvable', () => {
+    const a=pickScenario('combat',1,0);
+    const b=pickScenario('combat',1,1);
+    expect(a.id).not.toBe(b.id);
+    const sim=new Simulation();
+    sim.setScenario(b);
+    expect(sim.build(b.starterCode).ok).toBe(true);
+    sim.reset();
+    for(let i=0;i<120&&sim.status==='running';i++)sim.step();
+    expect(sim.status).toBe('success');
   });
 });

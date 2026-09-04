@@ -44,7 +44,16 @@ void update() {
   else { advance(); }
 }`,tactics:['重装核心移动慢但每次攻击更重，尽快击破以缩短受击窗口。','“弱点扫描仪”可将 attack() 提高到 2 点伤害，是应对重装核心的关键。']}
 };
-export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
+const COMBAT_VARIANT_B:SimulationScenario={id:'exp-combat-b',title:'回廊突破',objective:'击破巡逻体并抵达撤离门；巡逻体每 2 Tick 逼近、每 2 Tick 攻击',map:['###########','#R...S...E#','#.........#','#.........#','###########'],enemy:{x:5,y:1,hp:3,moveEvery:2,attackEvery:2,kind:'slime'},constraint:{require:['for (']},starterCode:`void update() {
+  if (enemy_ahead()) {
+    attack();
+    return;
+  }
+  for (int i = 0; i < 1; i = i + 1) {
+    move_forward();
+  }
+}`,tactics:['敌人挡在撤离门前方，先识别再攻击。','for 循环让机器人在非战斗拍稳定前进。']};
+export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{if(kind==='combat')return (seed+index)%2===0?EXPEDITION_SCENARIOS.combat:COMBAT_VARIANT_B;return EXPEDITION_SCENARIOS[kind]}export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
 export interface ExpeditionReward{id:string;kind:'api'|'sensor'|'runtime'|'debugger';title:string;description:string}
 export interface ExpeditionStats{seed:number;nodesCleared:number;damageDealt:number;damageTaken:number;credits:number;rewards:string[];victory:boolean}
 export interface ExpeditionAction{id:string;title:string;description:string}
