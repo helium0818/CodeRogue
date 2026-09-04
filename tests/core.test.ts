@@ -436,4 +436,29 @@ describe('simulation combat', () => {
     for(let i=0;i<120&&sim.status==='running';i++)sim.step();
     expect(sim.status).toBe('success');
   });
+  it('completes a full expedition run end to end without getting stuck', () => {
+    const run=new ExpeditionRun(42);
+    while(run.nodeIndex<run.route.length){
+      const node=run.current()!;
+      if(['combat','elite','boss'].includes(node)){
+        const scenario=pickScenario(node as 'combat'|'elite'|'boss', run.seed, run.nodeIndex);
+        const sim=new Simulation();
+        sim.setScenario(scenario, run.modifiers());
+        expect(sim.build(scenario.starterCode).ok, `${node} starter should build`).toBe(true);
+        sim.reset();
+        for(let i=0;i<200&&sim.status==='running';i++)sim.step();
+        expect(sim.status, `${node} should be completable`).toBe('success');
+        run.recordBattlePerformance(sim.robot.hp);
+        expect(run.resolveAction(run.actions()[0].id,true,'A')).toBe(true);
+      }else{
+        expect(run.resolveAction(run.actions()[0].id,true)).toBe(true);
+      }
+      if(node!=='boss'){
+        const reward=run.choices()[0];
+        expect(run.choose(reward.id)).toBe(true);
+      }
+      run.clearNode();
+    }
+    expect(run.stats.nodesCleared).toBe(run.route.length);
+  });
 });
