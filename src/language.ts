@@ -285,10 +285,10 @@ export class Parser{
   }
 }
 
-export interface RuntimeHost{sense(name:string):boolean;action(name:string):void}
+export interface RuntimeHost{sense(name:string):boolean;action(name:string):void;value?(name:string):number}
 export interface TickResult{
   variables:Record<string,RuntimeValue>;
-  sensors:{name:string;value:boolean}[];
+  sensors:{name:string;value:number|boolean}[];
   action?:string;
   sourceLine?:number;
   error?:string;
@@ -297,6 +297,7 @@ export interface TickResult{
 }
 
 const sensorNames=new Set(['wall_ahead','enemy_ahead','low_hp','enemy_near','low_energy']);
+const numericSensorNames=new Set(['distance_to_enemy','enemy_x','enemy_y','steps_to_wall']);
 const actionNames=new Set(['move_forward','turn_left','turn_right','wait','attack','shield','ranged_attack','dash','repair']);
 
 export class Interpreter{
@@ -321,7 +322,7 @@ export class Interpreter{
 
   runTick():TickResult{
     this.ops=0;
-    const sensors:{name:string;value:boolean}[]=[];
+    const sensors:{name:string;value:number|boolean}[]=[];
     let action:string|undefined;
     let sourceLine:number|undefined;
     const env:Record<string,RuntimeValue>={...this.globals};
@@ -412,6 +413,11 @@ export class Interpreter{
             return userFunction.returnType==='void'?undefined:value;
           }
           if(expression.args.length)this.fail(`Function '${expression.name}' expects 0 arguments`,expression);
+          if(numericSensorNames.has(expression.name)){
+            const value=this.host.value?.(expression.name)??0;
+            sensors.push({name:expression.name,value});
+            return value;
+          }
           if(sensorNames.has(expression.name)){
             const value=this.host.sense(expression.name);
             sensors.push({name:expression.name,value});
