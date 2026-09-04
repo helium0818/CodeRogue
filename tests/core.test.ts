@@ -43,10 +43,10 @@ describe('simulation combat', () => {
   });
   it('exposes enemy sensor and resolves attack', () => {
     const sim = new Simulation();
-    sim.build('void update(){ if(enemy_ahead()){ attack(); } else { for (int i = 0; i < 1; i = i + 1){ move_forward(); } } }');
+    sim.build('void update(){ if(enemy_near()){ ranged_attack(); } else { for (int i = 0; i < 1; i = i + 1){ move_forward(); } } }');
     sim.reset();
     for (let i=0;i<12 && sim.status==='running';i++) sim.step();
-    expect(sim.frames.some(f=>f.sensors.some(s=>s.name==='enemy_ahead'))).toBe(true);
+    expect(sim.frames.some(f=>f.sensors.some(s=>s.name==='enemy_near'))).toBe(true);
   });
   it('allows one costly pulse intervention when an enemy is near', () => {
     const sim=new Simulation(); sim.setScenario(EXPEDITION_SCENARIOS.combat); expect(sim.build((EXPEDITION_SCENARIOS.combat.solutionCode ?? EXPEDITION_SCENARIOS.combat.starterCode)).ok).toBe(true); sim.reset(); sim.step(); sim.step();
@@ -257,7 +257,7 @@ describe('simulation combat', () => {
     const sim = new Simulation();
     sim.setScenario(EXPEDITION_SCENARIOS.combat, run.modifiers());
     expect(sim.robot.hp).toBe(7);
-    expect(sim.build('void update(){ if(enemy_ahead()){ attack(); } else { for (int i = 0; i < 1; i = i + 1){ move_forward(); } } }').ok).toBe(true);
+    expect(sim.build('void update(){ if(enemy_near()){ ranged_attack(); } else { for (int i = 0; i < 1; i = i + 1){ move_forward(); } } }').ok).toBe(true);
     sim.reset(); sim.step(); sim.step(); sim.step(); sim.step();
     expect(sim.enemy.hp).toBe(0);
     expect(sim.robot.hp).toBe(7);
@@ -337,8 +337,8 @@ describe('simulation combat', () => {
   it('recognizes new sensors and lets shield block the next hit', () => {
     const sim=new Simulation();
     sim.setScenario(EXPEDITION_SCENARIOS.combat);
-    expect(sim.build('void update(){ if(enemy_near()){ shield(); } if(low_energy()){ for (int i = 0; i < 1; i = i + 1){ wait(); } } }').ok).toBe(true);
-    sim.build('void update(){ if(enemy_near()){ shield(); } for (int i = 0; i < 1; i = i + 1){ wait(); } }');
+    expect(sim.build('void update(){ if(false){ ranged_attack(); } if(enemy_near()){ shield(); } if(low_energy()){ for (int i = 0; i < 1; i = i + 1){ wait(); } } }').ok).toBe(true);
+    sim.build('void update(){ if(false){ ranged_attack(); } if(enemy_near()){ shield(); } for (int i = 0; i < 1; i = i + 1){ wait(); } }');
     sim.reset();
     sim.enemy.x=2; sim.enemy.y=1;
     sim.step();
