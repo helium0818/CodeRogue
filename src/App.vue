@@ -119,6 +119,7 @@ function beep(kind:'run'|'success'|'fail'='run'){if(!audioEnabled.value||typeof 
 function dismissTutorial(){tutorialVisible.value=false;try{window.localStorage.setItem('coderogue.tutorial.dismissed','1')}catch{}}
 function showTutorial(){tutorialStep.value=0;tutorialVisible.value=true;try{window.localStorage.removeItem('coderogue.tutorial.dismissed')}catch{}}
 function finishTutorial(){gameMode.value='story';expeditionScenarioActive.value=false;sim.selectLevel(0);loadLevelExample(0);build();dismissTutorial()}
+function loadReferenceSolution(){if(gameMode.value!=='expedition'||!expeditionScenario.value)return;const sol=expeditionScenario.value.solutionCode??expeditionScenario.value.starterCode;code.value=sol;built.value=false;buildError.value='';sim.status='idle';sim.message='Reference solution loaded';levelNotice.value='已载入参考解，可直接运行演示';try{window.localStorage.setItem('coderogue.firmware',code.value);window.localStorage.setItem('coderogue.firmware-level','expedition')}catch{}}
 function loadLevelExample(index=sim.levelIndex){const level=STORY_LEVELS[index];const starter=expeditionScenarioActive.value?expeditionScenario.value?.starterCode:LEVEL_STARTER_CODE[level.id];code.value=starter??DEFAULT_CODE;built.value=false;buildError.value='';sim.status='idle';sim.message='Example loaded';levelNotice.value=expeditionScenarioActive.value?'已载入远征战场草稿，请补全关键逻辑':`已进入 ${levelName(level.id)} · 示例程序已载入`;try{window.localStorage.setItem('coderogue.firmware',code.value);window.localStorage.setItem('coderogue.firmware-level',expeditionScenarioActive.value?'expedition':level.id)}catch{}}
 function prepareLevel(){loadLevelExample();build()}
 function tutorialNext(){tutorialStep.value=Math.min(2,tutorialStep.value+1)}
@@ -209,7 +210,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
     <section class="layout">
       <div class="left-column">
         <section class="panel editor-panel">
-          <div class="panel-head"><div><span class="panel-kicker">FIRMWARE WORKBENCH</span><strong>固件编辑器</strong></div><div class="panel-tools"><span v-if="currentSourceLine" class="source-line">执行行 {{currentSourceLine}}</span><button class="example-button" @click="loadLevelExample()" :disabled="running">{{gameMode==='expedition'?'载入战场草稿':'载入本关示例'}}</button><span class="chip">RoboC++</span></div></div>
+          <div class="panel-head"><div><span class="panel-kicker">FIRMWARE WORKBENCH</span><strong>固件编辑器</strong></div><div class="panel-tools"><span v-if="currentSourceLine" class="source-line">执行行 {{currentSourceLine}}</span><button class="example-button" @click="loadLevelExample()" :disabled="running">{{gameMode==='expedition'?'载入战场草稿':'载入本关示例'}}</button><button v-if="gameMode==='expedition'" class="example-button solution-button" @click="loadReferenceSolution" :disabled="running">载入参考解</button><span class="chip">RoboC++</span></div></div>
           <div class="file-tab"><span class="file-dot"></span>firmware.cpp <small>{{built?'已构建':'未构建'}}</small></div>
           <div class="editor-shell">
             <div class="line-gutter" :style="{transform:`translateY(-${editorScroll}px)`}" aria-hidden="true"><span v-for="(_,index) in codeLines" :key="index" :class="{current:index+1===currentSourceLine}">{{index+1}}</span></div>

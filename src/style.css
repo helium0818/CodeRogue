@@ -186,3 +186,6 @@ footer{display:flex;justify-content:space-between;gap:20px;padding-top:14px;colo
 .tile.fog>*{opacity:0}
 .tile.fog::before{content:"";position:absolute;inset:0;z-index:3;background:linear-gradient(135deg,#070b0f,#0a0f14);border:1px solid #1a242e}
 .tile.fog.has-item::before{background:linear-gradient(135deg,#0a0e13,#0c1218)}
+
+.solution-button{border-color:#9d4d7c!important;color:#f29bc5!important;background:#291522!important}
+.solution-button:hover{border-color:#ffb7dc!important;color:#ffd6ed!important}
