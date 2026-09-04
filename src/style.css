@@ -189,3 +189,6 @@ footer{display:flex;justify-content:space-between;gap:20px;padding-top:14px;colo
 
 .solution-button{border-color:#9d4d7c!important;color:#f29bc5!important;background:#291522!important}
 .solution-button:hover{border-color:#ffb7dc!important;color:#ffd6ed!important}
+
+.route-node.unknown{color:#5d6b7a;border-style:dashed}
+.route-node.unknown:before{background:#3a4754;color:#3a4754;box-shadow:none}
