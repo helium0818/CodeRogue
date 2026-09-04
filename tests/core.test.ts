@@ -466,7 +466,7 @@ describe('simulation combat', () => {
       for(const kind of ['combat','elite','boss'] as const){
         const scenario=pickScenario(kind,seed,0);
         const sim=new Simulation();
-        sim.setScenario(scenario);
+        sim.setScenario(scenario, undefined, seed);
         expect(sim.build(scenario.solutionCode ?? scenario.starterCode).ok, `${kind} seed ${seed} build`).toBe(true);
         sim.reset();
         for(let i=0;i<240&&sim.status==='running';i++)sim.step();
