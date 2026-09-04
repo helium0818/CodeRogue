@@ -182,3 +182,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding-top:14px;colo
 .item-pickup.energy{background:#f1bd59;box-shadow:0 0 10px rgba(241,189,89,.7);animation:item-pulse 1s ease-in-out infinite}
 .item-pickup.heal{background:#75d989;box-shadow:0 0 10px rgba(117,217,137,.7);animation:item-pulse 1s ease-in-out infinite}
 @keyframes item-pulse{50%{transform:scale(1.12)}}
+
+.tile.fog>*{opacity:0}
+.tile.fog::before{content:"";position:absolute;inset:0;z-index:3;background:linear-gradient(135deg,#070b0f,#0a0f14);border:1px solid #1a242e}
+.tile.fog.has-item::before{background:linear-gradient(135deg,#0a0e13,#0c1218)}

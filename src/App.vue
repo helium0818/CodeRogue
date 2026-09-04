@@ -84,6 +84,8 @@ function expeditionNodeName(node:string){return ({combat:'遭遇战',elite:'精�
 function actionName(action?:string){return action?`${actionNames[action]??action} · ${action}`:'无动作'}
 function eventName(event:string){if(event.startsWith('WATCHPOINT:'))return `监视点：${event.slice(11)}`;return eventNames[event]??event}
 function itemAt(x:number,y:number){return sim.items.find(i=>i.x===x&&i.y===y)}
+function isVisible(x:number,y:number){return Math.abs(x-sim.robot.x)+Math.abs(y-sim.robot.y)<=2}
+const fogEnabled=computed(()=>gameMode.value==='expedition'&&expeditionScenarioActive.value);
 function localizeMessage(message:string){
   const exact:Record<string,string>={Ready:'系统就绪',Running:'固件运行中',Paused:'模拟已暂停',Stopped:'模拟已停止','Build succeeded':'构建成功，可以运行','Exit reached':'任务完成：已抵达出口','Robot destroyed':'任务失败：机器人已损毁','Source changed; build required':'源码已修改，请重新构建','Slime hit':'攻击命中史莱姆','Slime destroyed':'史莱姆已被消灭','Enemy strike':'敌人接触攻击：本拍受到伤害','Snapshot saved':'快照已保存','Rolled back to snapshot':'已回滚至快照','Hot reload applied':'热重载已应用','Example loaded':'已载入本关示例','Route node loaded':'已载入远征节点'};
   if(exact[message])return exact[message];
@@ -257,7 +259,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
           <div class="objective"><span>{{expeditionScenarioActive?'远征目标':'关卡目标'}}</span><strong>{{expeditionScenarioActive?expeditionScenario?.objective:currentLevel.objective}}</strong><em v-if="sim.enemy.hp>0" :class="{danger:enemyThreat}">{{enemyThreat?'⚠ 接触危险':'史莱姆剩余'}} {{enemyThreat?'':' '+sim.enemy.hp+' HP'}}</em></div>
           <div class="map" :aria-label="expeditionScenarioActive?'远征地图':'关卡地图'">
             <div v-for="(row,y) in grid" :key="y" class="map-row">
-              <div v-for="item in row" :key="item.x" :class="['tile',item.cell==='#'?'wall':'floor',item.cell==='E'?'exit':'',item.x===sim.robot.x&&item.y===sim.robot.y?'robot':'',item.x===sim.enemy.x&&item.y===sim.enemy.y&&sim.enemy.hp>0?'enemy':'',itemAt(item.x,item.y)?'has-item':'']">
+              <div v-for="item in row" :key="item.x" :class="['tile',item.cell==='#'?'wall':'floor',item.cell==='E'?'exit':'',item.x===sim.robot.x&&item.y===sim.robot.y?'robot':'',item.x===sim.enemy.x&&item.y===sim.enemy.y&&sim.enemy.hp>0?'enemy':'',itemAt(item.x,item.y)?'has-item':'',fogEnabled&&!isVisible(item.x,item.y)?'fog':'']">
                 <img v-if="item.x===sim.robot.x&&item.y===sim.robot.y" :src="robotSprite" :class="['robot-sprite',`dir-${sim.robot.dir}`]" alt="机器人">
                 <img v-else-if="item.x===sim.enemy.x&&item.y===sim.enemy.y&&sim.enemy.hp>0" :src="slimeSprite" class="slime-sprite" alt="史莱姆">
                 <img v-else-if="item.cell==='E'" :src="exitSprite" class="exit-sprite" alt="出口">
