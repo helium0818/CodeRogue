@@ -98,7 +98,19 @@ void update() {
   if (enemy_ahead()) { attack(); }
   else { advance(); }
 }`,tactics:['重装核心伤害高，尽快贴身击破。','数组 path 用于记录进度，击破后沿墙撤离。']};
-export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{if(kind==='combat')return (seed+index)%2===0?EXPEDITION_SCENARIOS.combat:COMBAT_VARIANT_B;if(kind==='elite')return (seed+index)%2===0?EXPEDITION_SCENARIOS.elite:ELITE_VARIANT_B;return (seed+index)%2===0?EXPEDITION_SCENARIOS.boss:BOSS_VARIANT_B}export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
+const COMBAT_VARIANT_C:SimulationScenario={id:'exp-combat-c',title:'长途奔袭',objective:'击破巡逻体并抵达远端撤离门',map:['###############','#R..S.......E#','#.............#','#.............#','###############'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:10,y:1,kind:'heal'},{x:12,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
+  for (int i = 0; i < 1; i = i + 1) {
+    move_forward();
+  }
+}`,solutionCode:`void update() {
+  if (enemy_near()) {
+    ranged_attack();
+    return;
+  }
+  for (int i = 0; i < 1; i = i + 1) {
+    move_forward();
+  }
+}`,tactics:['这条走廊更长，注意能量管理。','用 ranged_attack() 在安全距离点掉巡逻体。']};export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{if(kind==='combat'){const pool=[EXPEDITION_SCENARIOS.combat,COMBAT_VARIANT_B,COMBAT_VARIANT_C];return pool[(seed+index)%3]}if(kind==='elite')return (seed+index)%2===0?EXPEDITION_SCENARIOS.elite:ELITE_VARIANT_B;return (seed+index)%2===0?EXPEDITION_SCENARIOS.boss:BOSS_VARIANT_B}export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
 export interface ExpeditionReward{id:string;kind:'api'|'sensor'|'runtime'|'debugger';title:string;description:string}
 export interface ExpeditionStats{seed:number;nodesCleared:number;damageDealt:number;damageTaken:number;credits:number;rewards:string[];victory:boolean}
 export interface ExpeditionAction{id:string;title:string;description:string}

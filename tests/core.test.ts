@@ -461,4 +461,17 @@ describe('simulation combat', () => {
     }
     expect(run.stats.nodesCleared).toBe(run.route.length);
   });
+  it('keeps every generated battlefield solvable across multiple seeds', () => {
+    for(const seed of [1,2,3,42,99,12345]){
+      for(const kind of ['combat','elite','boss'] as const){
+        const scenario=pickScenario(kind,seed,0);
+        const sim=new Simulation();
+        sim.setScenario(scenario);
+        expect(sim.build(scenario.solutionCode ?? scenario.starterCode).ok, `${kind} seed ${seed} build`).toBe(true);
+        sim.reset();
+        for(let i=0;i<240&&sim.status==='running';i++)sim.step();
+        expect(sim.status, `${kind} seed ${seed} ${scenario.id} should be solvable`).toBe('success');
+      }
+    }
+  });
 });
