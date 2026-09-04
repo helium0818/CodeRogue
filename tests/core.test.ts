@@ -408,4 +408,21 @@ describe('simulation combat', () => {
     sim.step();
     expect(sim.enemy.hp).toBe(1);
   });
+  it('supports dash and repair actions', () => {
+    const dash=new Simulation();
+    dash.selectLevel(0);
+    expect(dash.build('void update(){ dash(); }').ok).toBe(true);
+    dash.reset();
+    dash.step();
+    expect(dash.robot.x).toBe(3);
+    expect(dash.robot.energy).toBe(18);
+    const repair=new Simulation();
+    repair.selectLevel(0);
+    expect(repair.build('void update(){ repair(); }').ok).toBe(true);
+    repair.reset();
+    repair.robot.hp=3;
+    repair.step();
+    expect(repair.robot.hp).toBe(4);
+    expect(repair.robot.energy).toBe(17);
+  });
 });
