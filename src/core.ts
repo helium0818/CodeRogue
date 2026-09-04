@@ -71,7 +71,34 @@ const COMBAT_VARIANT_B:SimulationScenario={id:'exp-combat-b',title:'回廊突破
     move_forward();
   }
 }`,tactics:['敌人挡在撤离门前方，先识别再攻击。','for 循环让机器人在非战斗拍稳定前进。']};
-export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{if(kind==='combat')return (seed+index)%2===0?EXPEDITION_SCENARIOS.combat:COMBAT_VARIANT_B;return EXPEDITION_SCENARIOS[kind]}export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
+const ELITE_VARIANT_B:SimulationScenario={id:'exp-elite-b',title:'侧翼炮阵',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R...S..#','#.###...#','#.....E.#','#########'],enemy:{x:5,y:1,hp:4,attackEvery:2,kind:'turret',range:3},items:[{x:2,y:1,kind:'energy'},{x:5,y:3,kind:'heal'}],constraint:{require:['void advance()','enemy_near()','ranged_attack()']},starterCode:`void advance() {
+  move_forward();
+}
+void update() {
+  advance();
+}`,solutionCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_near()) { ranged_attack(); }
+  else { advance(); }
+}`,tactics:['炮台不会移动，用 ranged_attack() 在安全距离点掉它。','敌人倒下后，用 advance() 沿墙绕过隔墙。']};
+const BOSS_VARIANT_B:SimulationScenario={id:'exp-boss-b',title:'重装回廊',objective:'重装核心逼近；击破后撤离',map:['###########','#R..S.....#','#..#####..#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:3,kind:'tank'},items:[{x:2,y:1,kind:'energy'},{x:2,y:3,kind:'heal'}],constraint:{require:['[']},starterCode:`int path[2];
+void update() {
+  path[0] = path[0] + 1;
+  move_forward();
+}`,solutionCode:`int path[2];
+void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  path[0] = path[0] + 1;
+  if (enemy_ahead()) { attack(); }
+  else { advance(); }
+}`,tactics:['重装核心伤害高，尽快贴身击破。','数组 path 用于记录进度，击破后沿墙撤离。']};
+export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{if(kind==='combat')return (seed+index)%2===0?EXPEDITION_SCENARIOS.combat:COMBAT_VARIANT_B;if(kind==='elite')return (seed+index)%2===0?EXPEDITION_SCENARIOS.elite:ELITE_VARIANT_B;return (seed+index)%2===0?EXPEDITION_SCENARIOS.boss:BOSS_VARIANT_B}export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
 export interface ExpeditionReward{id:string;kind:'api'|'sensor'|'runtime'|'debugger';title:string;description:string}
 export interface ExpeditionStats{seed:number;nodesCleared:number;damageDealt:number;damageTaken:number;credits:number;rewards:string[];victory:boolean}
 export interface ExpeditionAction{id:string;title:string;description:string}
