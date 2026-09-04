@@ -55,7 +55,7 @@ describe('simulation combat', () => {
   it('separates enemy pursuit from its contact attack cadence', () => {
     const sim=new Simulation(); sim.setScenario(EXPEDITION_SCENARIOS.combat);
     expect(sim.build((EXPEDITION_SCENARIOS.combat.solutionCode ?? EXPEDITION_SCENARIOS.combat.starterCode)).ok).toBe(true); sim.reset();
-    for(let i=0;i<12&&sim.status==='running';i++) sim.step();
+    for(let i=0;i<40&&sim.status==='running';i++) sim.step();
     expect(sim.status).toBe('success');
     expect(sim.robot.hp).toBeGreaterThanOrEqual(4);
   });

@@ -17,19 +17,18 @@ export interface SimulationSnapshot{levelIndex:number;map:string[];robot:Robot;e
 export interface ProfileStats{ticks:number;actions:number;errors:number;durationMs:number;actionCounts:Record<string,number>}
 export type ExpeditionNode='combat'|'elite'|'event'|'shop'|'boss';
 export const EXPEDITION_SCENARIOS:Record<'combat'|'elite'|'boss',SimulationScenario>={
- combat:{id:'exp-combat',title:'断线走廊',objective:'击破蜂群并抵达撤离门；蜂群每 1 Tick 逼近并攻击',map:['###########','#R..S....E#','#...###...#','#.........#','###########'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:7,y:1,kind:'heal'}],constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
+ combat:{id:'exp-combat',title:'断线走廊',objective:'击破蜂群并抵达撤离门；蜂群每 1 Tick 逼近并攻击',map:['###########','#R..S.....#','#...#####.#','#........E#','###########'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:7,y:1,kind:'heal'}],constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
   for (int i = 0; i < 1; i = i + 1) {
     move_forward();
   }
-}`,solutionCode:`void update() {
-  if (enemy_near()) {
-    ranged_attack();
-    return;
-  }
-  for (int i = 0; i < 1; i = i + 1) {
-    move_forward();
-  }
-}`,tactics:['敌人挡在撤离门前，先用 enemy_ahead() 识别它。','attack() 与 move_forward() 都会占用一拍，击破后再继续前进。']},
+}`,solutionCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_near()) { ranged_attack(); }
+  else { for (int i = 0; i < 1; i = i + 1) { advance(); } }
+}`,tactics:['走廊有隔墙，用 advance() 沿墙导航。','敌人靠近时用 ranged_attack() 在安全距离解决。']},
  elite:{id:'exp-elite',title:'压迫侧廊',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R..S...#','#.###...#','#.....E.#','#########'],enemy:{x:4,y:1,hp:4,attackEvery:2,kind:'turret',range:3},items:[{x:2,y:1,kind:'energy'},{x:5,y:3,kind:'heal'}],constraint:{require:['void advance()','enemy_near()','ranged_attack()']},starterCode:`void advance() {
   move_forward();
 }
@@ -58,18 +57,17 @@ void update() {
   else { advance(); }
 }`,tactics:['重装核心移动慢但每次攻击更重，尽快击破以缩短受击窗口。','“弱点扫描仪”可将 attack() 提高到 2 点伤害，是应对重装核心的关键。']}
 };
-const COMBAT_VARIANT_B:SimulationScenario={id:'exp-combat-b',title:'回廊突破',objective:'击破巡逻体并抵达撤离门；巡逻体每 2 Tick 逼近、每 2 Tick 攻击',map:['###########','#R...S...E#','#.........#','#.........#','###########'],enemy:{x:5,y:1,hp:3,moveEvery:2,attackEvery:2,kind:'slime'},constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
+const COMBAT_VARIANT_B:SimulationScenario={id:'exp-combat-b',title:'回廊突破',objective:'击破巡逻体并抵达撤离门；巡逻体每 2 Tick 逼近、每 2 Tick 攻击',map:['###########','#R...S....#','#...#####.#','#........E#','###########'],enemy:{x:5,y:1,hp:3,moveEvery:2,attackEvery:2,kind:'slime'},constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
   for (int i = 0; i < 1; i = i + 1) {
     move_forward();
   }
-}`,solutionCode:`void update() {
-  if (enemy_near()) {
-    ranged_attack();
-    return;
-  }
-  for (int i = 0; i < 1; i = i + 1) {
-    move_forward();
-  }
+}`,solutionCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_near()) { ranged_attack(); }
+  else { for (int i = 0; i < 1; i = i + 1) { advance(); } }
 }`,tactics:['敌人挡在撤离门前方，先识别再攻击。','for 循环让机器人在非战斗拍稳定前进。']};
 const ELITE_VARIANT_B:SimulationScenario={id:'exp-elite-b',title:'侧翼炮阵',objective:'炮台静止但远程射击；靠近击破后绕过隔墙撤离',map:['#########','#R...S..#','#.###...#','#.....E.#','#########'],enemy:{x:5,y:1,hp:4,attackEvery:2,kind:'turret',range:3},items:[{x:2,y:1,kind:'energy'},{x:5,y:3,kind:'heal'}],constraint:{require:['void advance()','enemy_near()','ranged_attack()']},starterCode:`void advance() {
   move_forward();
@@ -98,30 +96,28 @@ void update() {
   if (enemy_ahead()) { attack(); }
   else { advance(); }
 }`,tactics:['重装核心伤害高，尽快贴身击破。','数组 path 用于记录进度，击破后沿墙撤离。']};
-const COMBAT_VARIANT_C:SimulationScenario={id:'exp-combat-c',title:'长途奔袭',objective:'击破巡逻体并抵达远端撤离门',map:['###############','#R..S.......E#','#.............#','#.............#','###############'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:10,y:1,kind:'heal'},{x:12,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
+const COMBAT_VARIANT_C:SimulationScenario={id:'exp-combat-c',title:'长途奔袭',objective:'击破巡逻体并抵达远端撤离门',map:['###############','#R..S.........#','#....#####....#','#............E#','###############'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:1,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:10,y:1,kind:'heal'},{x:12,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
   for (int i = 0; i < 1; i = i + 1) {
     move_forward();
   }
-}`,solutionCode:`void update() {
-  if (enemy_near()) {
-    ranged_attack();
-    return;
-  }
-  for (int i = 0; i < 1; i = i + 1) {
-    move_forward();
-  }
+}`,solutionCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_near()) { ranged_attack(); }
+  else { for (int i = 0; i < 1; i = i + 1) { advance(); } }
 }`,tactics:['这条走廊更长，注意能量管理。','用 ranged_attack() 在安全距离点掉巡逻体。']};export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{const COMBAT_VARIANT_D:SimulationScenario={id:'exp-combat-d',title:'冲刺者走廊',objective:'在冲刺者近身前用 ranged_attack() 点掉它',map:['##########','#R.......E#','#.........#','#.........#','##########'],enemy:{x:6,y:1,hp:1,moveEvery:1,attackEvery:1,kind:'runner'},items:[{x:2,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()']},starterCode:`void update() {
   for (int i = 0; i < 1; i = i + 1) {
     move_forward();
   }
-}`,solutionCode:`void update() {
-  if (enemy_near()) {
-    ranged_attack();
-    return;
-  }
-  for (int i = 0; i < 1; i = i + 1) {
-    move_forward();
-  }
+}`,solutionCode:`void advance() {
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}
+void update() {
+  if (enemy_near()) { ranged_attack(); }
+  else { for (int i = 0; i < 1; i = i + 1) { advance(); } }
 }`,tactics:['冲刺者近身会自爆，必须远程点掉。','enemy_near() 能在两格内发现它。']};
 if(kind==='combat'){const pool=[EXPEDITION_SCENARIOS.combat,COMBAT_VARIANT_B,COMBAT_VARIANT_C,COMBAT_VARIANT_D];return pool[(seed+index)%4]}if(kind==='elite')return (seed+index)%2===0?EXPEDITION_SCENARIOS.elite:ELITE_VARIANT_B;return (seed+index)%2===0?EXPEDITION_SCENARIOS.boss:BOSS_VARIANT_B}export const EXPEDITION_HUB_SCENARIO:SimulationScenario={id:'exp-hub',title:'远征中转站',objective:'选择路线行动，准备下一场代码战斗',map:['#########','#R.....E#','#########'],starterCode:'void update() {\n  wait();\n}',tactics:['事件与商店不需要运行固件。','你的选择会改变资源与下一场战斗的准备状态。']};
 export interface ExpeditionReward{id:string;kind:'api'|'sensor'|'runtime'|'debugger';title:string;description:string}
