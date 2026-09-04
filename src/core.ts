@@ -92,6 +92,29 @@ export class Simulation {pulseUsed=false;shieldReady=false;levelIndex=0;map=STOR
  rollback(snapshot:SimulationSnapshot){this.levelIndex=snapshot.levelIndex;this.scenario=snapshot.scenario?{...snapshot.scenario,map:[...snapshot.scenario.map],enemy:snapshot.scenario.enemy?{...snapshot.scenario.enemy}:undefined}:undefined;this.map=[...snapshot.map];this.robot={...snapshot.robot};this.enemy={...snapshot.enemy};this.tick=snapshot.tick;this.frames=snapshot.frames.map(frame=>({...frame,robot:{...frame.robot},enemy:{...frame.enemy},variables:{...frame.variables},sensors:frame.sensors.map(sensor=>({...sensor}))}));this.status=snapshot.status;this.message='Rolled back to snapshot';if(this.interpreter)Object.assign(this.interpreter.globals,snapshot.interpreterGlobals)}
   step(){if(!this.interpreter||this.status!=='running')return;const result=this.interpreter.runTick();this.tick++;this.resolveEnemy();if(this.modifiers.energyRegenEvery&&this.tick%this.modifiers.energyRegenEvery===0){this.robot.energy=Math.min(this.modifiers.maxEnergy,this.robot.energy+1)}const ey=this.map.findIndex(r=>r.includes('E'));const ex=this.map[ey]?.indexOf('E')??6;const events:string[]=[];if(this.robot.x===ex&&this.robot.y===ey&&this.enemy.hp<=0){this.status='success';this.message='Exit reached';if(!this.scenario)this.completedLevels.add(STORY_LEVELS[this.levelIndex].id);events.push('EXIT_REACHED')}if(this.robot.hp<=0){this.status='failed';this.message='Robot destroyed';events.push('ROBOT_DESTROYED')}if(result.error){this.status='error';this.message=result.error;events.push('RUNTIME_ERROR')}for(const name of this.watchpoints){const value=result.variables[name];const previous=this.watchedValues.get(name);if(this.watchedValues.has(name)&&previous!==value){events.push(`WATCHPOINT:${name}`);if(this.status==='running'){this.status='paused';this.message=`Watchpoint changed: ${name}`}}this.watchedValues.set(name,value)}if(this.status==='running'&&result.sourceLine&&this.breakpoints.has(result.sourceLine)&&!this.hitBreakpoints.has(result.sourceLine)){this.status='paused';this.message=`Breakpoint hit at line ${result.sourceLine}`;this.hitBreakpoints.add(result.sourceLine);events.push('BREAKPOINT')}this.frames.push({tick:this.tick,sourceLine:result.sourceLine??result.errorLine,robot:{...this.robot},enemy:{...this.enemy},variables:result.variables,sensors:result.sensors,action:result.action,events,error:result.error});if(this.frames.length>200)this.frames.shift();if(result.error||this.robot.hp<=0){this.coreDump={cause:result.error?'runtime_error':'robot_destroyed',tick:this.tick,sourceLine:result.sourceLine??result.errorLine,message:result.error??'Robot destroyed',robot:{...this.robot},enemy:{...this.enemy},variables:{...result.variables},recentFrames:this.frames.slice(-12).map(frame=>({...frame,robot:{...frame.robot},enemy:{...frame.enemy},variables:{...frame.variables},sensors:frame.sensors.map(sensor=>({...sensor}),)}))}}return result}
  private host():RuntimeHost{return{sense:(n)=>n==='wall_ahead'?this.isWall(this.front().x,this.front().y):n==='enemy_ahead'?this.enemy.hp>0&&this.front().x===this.enemy.x&&this.front().y===this.enemy.y:n==='enemy_near'?this.enemy.hp>0&&Math.abs(this.enemy.x-this.robot.x)+Math.abs(this.enemy.y-this.robot.y)<=2:n==='low_hp'?this.robot.hp<=2:n==='low_energy'?this.robot.energy<=5:false,action:(n)=>{if(this.robot.energy<=0){this.status='failed';this.message='Energy depleted';return}if(n==='move_forward'){const p=this.front();if(!this.isWall(p.x,p.y)&&!(this.enemy.hp>0&&p.x===this.enemy.x&&p.y===this.enemy.y)){this.robot.x=p.x;this.robot.y=p.y}this.robot.energy=Math.max(0,this.robot.energy-this.modifiers.moveEnergyCost)}else if(n==='turn_right'){this.robot.dir={N:'E',E:'S',S:'W',W:'N'}[this.robot.dir]as Direction;this.robot.energy=Math.max(0,this.robot.energy-1)}else if(n==='turn_left'){this.robot.dir={N:'W',W:'S',S:'E',E:'N'}[this.robot.dir]as Direction;this.robot.energy=Math.max(0,this.robot.energy-1)}else if(n==='shield'){this.shieldReady=true;this.robot.energy=Math.max(0,this.robot.energy-2)}else if(n==='ranged_attack'&&this.enemy.hp>0){const dist=Math.abs(this.enemy.x-this.robot.x)+Math.abs(this.enemy.y-this.robot.y);if(dist<=2){this.enemy.hp=Math.max(0,this.enemy.hp-(this.modifiers.rangedPower??this.modifiers.attackPower));if(this.enemy.hp===0){this.enemy.x=-1;this.enemy.y=-1}this.message=this.enemy.hp?'Ranged hit':'Target destroyed';this.robot.energy=Math.max(0,this.robot.energy-2)}}else if(n==='attack'&&this.enemy.hp>0&&this.front().x===this.enemy.x&&this.front().y===this.enemy.y){this.enemy.hp=Math.max(0,this.enemy.hp-(this.modifiers.rangedPower??this.modifiers.attackPower));if(this.enemy.hp===0){this.enemy.x=-1;this.enemy.y=-1}this.message=this.enemy.hp?'Slime hit':'Slime destroyed';this.robot.energy=Math.max(0,this.robot.energy-1)}}}}
+ private nextEnemyStep():{x:number;y:number}|undefined{
+    const sx=this.enemy.x; const sy=this.enemy.y;
+    const tx=this.robot.x; const ty=this.robot.y;
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    const targets=dirs.map(([dx,dy])=>({x:tx+dx,y:ty+dy})).filter(p=>!this.isWall(p.x,p.y));
+    if(targets.length===0)return undefined;
+    const visited=new Set([sx+','+sy]);
+    const queue=[{x:sx,y:sy,path:[] as {x:number;y:number}[]}];
+    while(queue.length){
+      const cur=queue.shift()!;
+      for(const t of targets){if(cur.x===t.x&&cur.y===t.y)return cur.path[0]??{x:sx,y:sy};}
+      for(const [dx,dy] of dirs){
+        const nx=cur.x+dx; const ny=cur.y+dy;
+        const k=nx+','+ny;
+        if(visited.has(k))continue;
+        if(this.isWall(nx,ny))continue;
+        if(nx===tx&&ny===ty)continue;
+        visited.add(k);
+        queue.push({x:nx,y:ny,path:[...cur.path,{x:nx,y:ny}]});
+      }
+    }
+    return undefined;
+  }
  private front(){const d={N:[0,-1],E:[1,0],S:[0,1],W:[-1,0]}[this.robot.dir];return{x:this.robot.x+d[0],y:this.robot.y+d[1]}} private isWall(x:number,y:number){return this.map[y]?.[x]==='#'} private resolveEnemy(){
     if(this.enemy.hp<=0)return;
     const dist=()=>Math.abs(this.enemy.x-this.robot.x)+Math.abs(this.enemy.y-this.robot.y);
@@ -107,10 +130,8 @@ export class Simulation {pulseUsed=false;shieldReady=false;levelIndex=0;map=STOR
     if(kind==='turret')return;
     const moveEvery=this.enemy.moveEvery??(kind==='swarm'?1:kind==='tank'?4:3);
     if(this.tick%moveEvery===0){
-      const dx=this.robot.x-this.enemy.x;
-      const dy=this.robot.y-this.enemy.y;
-      const attempts=Math.abs(dx)>=Math.abs(dy)?[{x:this.enemy.x+Math.sign(dx),y:this.enemy.y},{x:this.enemy.x,y:this.enemy.y+Math.sign(dy)}]:[{x:this.enemy.x,y:this.enemy.y+Math.sign(dy)},{x:this.enemy.x+Math.sign(dx),y:this.enemy.y}];
-      for(const next of attempts){if((next.x!==this.robot.x||next.y!==this.robot.y)&&!this.isWall(next.x,next.y)){this.enemy.x=next.x;this.enemy.y=next.y;break;}}
+      const step=this.nextEnemyStep();
+      if(step){this.enemy.x=step.x;this.enemy.y=step.y;}
     }
   }
 
