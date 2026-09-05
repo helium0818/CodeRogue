@@ -44,7 +44,7 @@ void update() {
   if (enemy_near() && distance_to_enemy() <= 2) { ranged_attack(); }
   else { advance(); }
 }`,tactics:['炮台不会移动，但会在远处持续射击，尽快靠近并击破。','敌人倒下后，墙会迫使你转弯；让感知优先于移动。']},
- boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:4,kind:'tank'},items:[{x:2,y:1,kind:'energy'},{x:2,y:3,kind:'heal'}],constraint:{require:['['],forbid:['ranged_attack()']},starterCode:`int path[2];
+ boss:{id:'exp-boss',title:'核心熔炉',objective:'重装核心每 4 Tick 逼近、每 3 Tick 攻击；击破后撤离',map:['###########','#R..S.....#','#.#####...#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:4,kind:'tank'},items:[{x:2,y:1,kind:'energy'},{x:5,y:1,kind:'energy'},{x:9,y:1,kind:'energy'},{x:9,y:3,kind:'energy'},{x:2,y:3,kind:'heal'}],constraint:{require:['['],forbid:['ranged_attack()']},starterCode:`int path[2];
 void update() {
   path[0] = path[0] + 1;
   move_forward();
@@ -55,8 +55,12 @@ void advance() {
 }
 void update() {
   path[0] = path[0] + 1;
-  if (enemy_ahead()) { attack(); }
-  else { advance(); }
+  if (enemy_ahead()) {
+    if (path[0] % 4 == 0) { shield(); }
+    else { attack(); }
+    return;
+  }
+  advance();
 }`,tactics:['重装核心移动慢但每次攻击更重，尽快击破以缩短受击窗口。','“弱点扫描仪”可将 attack() 提高到 2 点伤害，是应对重装核心的关键。']}
 };
 const COMBAT_VARIANT_B:SimulationScenario={id:'exp-combat-b',title:'回廊突破',objective:'击破巡逻体并抵达撤离门；巡逻体每 2 Tick 逼近、每 2 Tick 攻击',map:['###########','#R...S....#','#...#####.#','#........E#','###########'],enemy:{x:5,y:1,hp:2,moveEvery:2,attackEvery:3,kind:'slime'},constraint:{require:['for (','enemy_near()','ranged_attack()'],forbid:['attack()']},starterCode:`void update() {
@@ -112,7 +116,7 @@ void update() {
   if (enemy_ahead()) { attack(); }
   else { advance(); }
 }`,tactics:['远程攻击会被护盾吸收：不要站在原地和它对射。','贴近后用 attack() 拆掉守卫，再用 advance() 绕墙抵达出口。']};
-const BOSS_VARIANT_B:SimulationScenario={id:'exp-boss-b',title:'重装回廊',objective:'重装核心逼近；击破后撤离',map:['###########','#R..S.....#','#..#####..#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:4,kind:'tank'},items:[{x:2,y:1,kind:'energy'},{x:2,y:3,kind:'heal'}],constraint:{require:['['],forbid:['ranged_attack()']},starterCode:`int path[2];
+const BOSS_VARIANT_B:SimulationScenario={id:'exp-boss-b',title:'重装回廊',objective:'重装核心逼近；击破后撤离',map:['###########','#R..S.....#','#..#####..#','#.......E.#','###########'],enemy:{x:4,y:1,hp:5,moveEvery:4,attackEvery:4,kind:'tank'},items:[{x:2,y:1,kind:'energy'},{x:5,y:1,kind:'energy'},{x:9,y:1,kind:'energy'},{x:9,y:3,kind:'energy'},{x:2,y:3,kind:'heal'}],constraint:{require:['['],forbid:['ranged_attack()']},starterCode:`int path[2];
 void update() {
   path[0] = path[0] + 1;
   move_forward();
@@ -123,8 +127,12 @@ void advance() {
 }
 void update() {
   path[0] = path[0] + 1;
-  if (enemy_ahead()) { attack(); }
-  else { advance(); }
+  if (enemy_ahead()) {
+    if (path[0] % 4 == 0) { shield(); }
+    else { attack(); }
+    return;
+  }
+  advance();
 }`,tactics:['重装核心伤害高，尽快贴身击破。','数组 path 用于记录进度，击破后沿墙撤离。']};
 const COMBAT_VARIANT_C:SimulationScenario={id:'exp-combat-c',title:'长途奔袭',objective:'击破巡逻体并抵达远端撤离门',map:['###############','#R..S.........#','#....#####....#','#............E#','###############'],enemy:{x:4,y:1,hp:2,moveEvery:1,attackEvery:3,kind:'swarm'},items:[{x:2,y:1,kind:'energy'},{x:10,y:1,kind:'heal'},{x:12,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()'],forbid:['attack()']},starterCode:`void update() {
   for (int i = 0; i < 1; i = i + 1) {
