@@ -192,6 +192,8 @@ void update() {
   navigate();
 }`;
 
+export const HOTPATCH_START_CODE = ADAPTIVE_CODE.replace('distance_to_enemy() <= 2', 'distance_to_enemy() <= 1');
+
 export interface RogueEnemyMeta {
   x:number;y:number;hp:number;damage?:number;kind:'slime'|'runner'|'swarm'|'guard'|'turret'|'tank';
   moveEvery?:number;attackEvery?:number;range?:number;active?:boolean;

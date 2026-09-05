@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_CODE,
   FIRE_CONTROL_CORE,
+  HOTPATCH_START_CODE,
   KITE_CODE,
   NAIVE_CODE,
   STANDARD_CODE,
@@ -88,5 +89,12 @@ describe('Combat 03 Fire Control Core', () => {
     expect(kite.killOrder).toEqual(['runner', 'turret', 'tank']);
     expect(kite.turnCount).toBeGreaterThanOrEqual(2);
     expect(kite.energy).toBeGreaterThan(0);
+  });
+  it('hot-patch starter fails until its range threshold is hot-fixed back to <=2', () => {
+    const broken = simulateRogueCombat(FIRE_CONTROL_CORE, HOTPATCH_START_CODE);
+    const fixed = simulateRogueCombat(FIRE_CONTROL_CORE, HOTPATCH_START_CODE.replace('distance_to_enemy() <= 1', 'distance_to_enemy() <= 2'));
+    expect(broken.success).toBe(false);
+    expect(fixed.success).toBe(true);
+    expect(fixed.killOrder).toEqual(['runner', 'turret', 'tank']);
   });
 });
