@@ -555,3 +555,4 @@ linear-gradient(180deg,#151109,#181307)}
 .expedition-decision-panel b{color:#f1c66b;font-size:15px}
 .expedition-decision-panel p{margin:0;color:#aab9c4;font-size:11px;line-height:1.6;max-width:460px}
 .expedition-decision-panel small{color:#65798a;font-size:9px}
+.debug-flow-hint{margin-right:auto;padding:5px 9px;border-left:2px solid #65dfbd;background:#11231f;color:#9de3cd;font-size:9px;white-space:nowrap}

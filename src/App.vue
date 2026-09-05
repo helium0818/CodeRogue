@@ -457,7 +457,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
       </div>
       <div v-else-if="finalRogue.phase==='failed'" class="encounter-row battle-failure"><div class="encounter-copy"><b>战斗失败 · 行动终止</b><span>FinalRogueRun 状态停留在失败节点，未伪造通关。</span></div><button class="confirm-reward" @click="resetFinalRogue">重新开始 Final Rogue</button></div>
       <div v-if="finalRogueDebug.show" class="final-rogue-debug-comparison">
-        <div class="debug-comparison-title"><span>调试对照</span><em>Snapshot / Rollback / Hot Reload</em></div>
+        <div class="debug-comparison-title"><span>调试对照</span><em>Snapshot 底座 · Hot Reload 核心 · Rollback 安全网</em></div>
         <div class="debug-runs">
           <div v-if="finalRogueDebug.before" class="debug-run debug-before"><span>调试前</span><b>{{finalRogueDebug.before.strategy}}</b><em :class="finalRogueDebug.before.success?'ok':'bad'">{{finalRogueDebug.before.success?'成功':'失败'}}</em><small>HP {{finalRogueDebug.before.hp}} · Damage {{finalRogueDebug.before.damage}} · Ticks {{finalRogueDebug.before.ticks}}</small></div>
           <div v-if="finalRogueDebug.after" class="debug-run debug-after"><span>调试后</span><b>{{finalRogueDebug.after.strategy}}</b><em :class="finalRogueDebug.after.success?'ok':'bad'">{{finalRogueDebug.after.success?'成功':'失败'}}</em><small>HP {{finalRogueDebug.after.hp}} · Damage {{finalRogueDebug.after.damage}} · Ticks {{finalRogueDebug.after.ticks}}</small></div>
@@ -484,13 +484,13 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
             <label for="run-speed">速度<select id="run-speed" v-model.number="speed" aria-label="运行速度"><option :value="1000">1×</option><option :value="500">2×</option><option :value="250">4×</option></select></label>
           </div>
           <div v-if="gameMode==='story'||gameMode==='dungeon'" class="debug-controls">
-            <span class="debug-title">断点调试</span><label for="breakpoint-line">源码行</label><input id="breakpoint-line" v-model.number="breakpoint" type="number" min="1" step="1" placeholder="3">
+            <span class="debug-title">断点定位 · Hot Reload 核心</span><label for="breakpoint-line">源码行</label><input id="breakpoint-line" v-model.number="breakpoint" type="number" min="1" step="1" placeholder="3">
             <button @click="setBp" :disabled="!breakpoint">设置断点</button><button @click="clearBp" :disabled="!sim.breakpoints.size">清除</button>
             <span v-if="sim.breakpoints.size" class="breakpoint-list">生效行：{{Array.from(sim.breakpoints).sort((a,b)=>a-b).join(', ')}}</span><span v-else class="breakpoint-list muted">暂无断点</span>
             <span class="debug-divider"></span><label for="watch-variable">监视变量</label><input id="watch-variable" v-model="watchVariable" @keyup.enter="setWatch" placeholder="例如 n">
             <button @click="setWatch" :disabled="!watchVariable.trim()">添加</button><button @click="clearWatch" :disabled="!sim.watchpoints.size">清除</button>
             <span v-if="sim.watchpoints.size" class="watch-list"><b v-for="name in Array.from(sim.watchpoints)" :key="name">{{name}} = {{frame?.variables[name] === undefined ? '—' : String(frame.variables[name])}}</b></span><span v-else class="watch-list muted">暂无监视变量</span>
-            <span class="debug-divider"></span><button @click="takeSnapshot">保存快照</button><button @click="rollback" :disabled="!hasSnapshot">{{roguePrototypeActive?'回滚 (2 DP)':'回滚'}}</button>
+            <span class="debug-divider"></span><span v-if="sim.status==='paused'" class="debug-flow-hint">已暂停：先改代码，再 Hot Reload，最后继续</span><button @click="takeSnapshot">保存快照</button><button @click="rollback" :disabled="!hasSnapshot">{{roguePrototypeActive?'回滚 (2 DP)':'回滚'}}</button>
           </div>
         </section>
 
