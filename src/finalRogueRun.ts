@@ -189,7 +189,8 @@ export interface RogueCombatStats {
   maxSimultaneousActive:number;exposureTicks:number;reachedRouteGoal?:boolean;firstEnemyNearTick?:number;firstDashTick?:number;rangedShots?:number;
 }
 export function rogueDungeon(enc:RogueEncounter):DungeonLayout{
-  const interior=enc.ascii.map(row=>row.split('').map(ch=>ch==='#'?'#':'.').join(''));
+  const rectRows=enc.ascii.map(row=>row.length<enc.width?row.padEnd(enc.width,'#'):row);
+  const interior=rectRows.map(row=>row.split('').map(ch=>ch==='#'?'#':'.').join(''));
   return {width:enc.width,height:enc.height,rooms:[{id:'arena',type:'combat',x:0,y:0,width:enc.width,height:enc.height,interior,items:[]}],corridors:[],doors:[]};
 }
 
@@ -197,16 +198,16 @@ export const PURSUIT_LABYRINTH:RogueEncounter={
   id:'pursuit-labyrinth',label:'PURSUIT LABYRINTH',width:38,height:12,
   ascii:[
 '######################################',
-'#...............#..................#',
-'#.....S.........#..................#',
-'#.....#####.....#..................#',
-'#.........#..........r.............#',
-'#.........#.........................#',
-'#.........######....................#',
-'#...............#...................#',
-'#R..............#.........w.........#',
-'#...............########............#',
-'#...................................#',
+'#...............#..................#'+'##',
+'#.....S.........#..................#'+'##',
+'#.....#####.....#..................#'+'##',
+'#.........#..........r.............#' + '##',
+'#.........#.........................#' + '#',
+'#.........######....................#' + '#',
+'#...............#...................#' + '#',
+'#R..............#.........w.........#' + '#',
+'#...............########............#' + '#',
+'#...................................#' + '#',
 '######################################'
   ],
   robot:{x:2,y:8,dir:'E'},

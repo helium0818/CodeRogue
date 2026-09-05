@@ -470,4 +470,41 @@ linear-gradient(180deg,#151109,#181307)}
 .final-rogue-shell .dungeon-legend{gap:8px;padding:5px 0 2px;font-size:8px;white-space:nowrap}
 .final-rogue-shell .dungeon-legend i{width:7px;height:7px;margin-right:3px}
 @media(max-width:1100px){.final-rogue-shell .world{height:min(calc(100vh - 230px),760px);min-height:360px}}
-@media(max-width:760px){.final-rogue-shell .world{height:auto;min-height:320px}}
+@media(max-width:760px){.final-rogue-shell .world{height:auto;min-height:320px}}/* App Header / navigation refactor — visual only */
+.topbar.app-header{display:grid;grid-template-columns:auto minmax(200px,1fr) auto auto auto;gap:12px;align-items:center;height:62px;min-height:58px;padding:0 16px;background:linear-gradient(180deg,rgba(12,16,21,.97),rgba(12,16,21,.88));border-bottom:1px solid #24303c;position:relative}
+.brand-compact{gap:9px}
+.brand-compact .brand-mark{width:34px;height:34px;font-size:11px;border-width:1px}
+.brand-compact h1{font-size:18px}
+.brand-compact h1 span{font-size:12px;margin-left:5px;letter-spacing:1px}
+.brand-compact .eyebrow{font-size:7px;letter-spacing:1.2px}
+.app-nav{display:flex;gap:5px;justify-self:start;min-width:0}
+.app-nav button{height:32px;padding:0 15px;background:#111923;border:1px solid #2a3645;color:#8799a8;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.app-nav button:hover{border-color:#65dfbd;color:#d9ece6}
+.app-nav button.active{background:#17352f;border-color:#65dfbd;color:#eafff8;box-shadow:0 0 12px #65dfbd22}
+.more-wrap{position:relative;align-self:center}
+.more-toggle{height:32px;padding:0 13px;background:#111923;border:1px solid #2a3645;color:#a9b9c6;font-size:10px;cursor:pointer;white-space:nowrap}
+.more-toggle:hover,.more-toggle.open{border-color:#65dfbd;color:#eafff8}
+.more-menu{position:absolute;top:calc(100% + 7px);right:0;z-index:80;width:190px;padding:5px;background:#0d151e;border:1px solid #31404e;border-radius:5px;box-shadow:0 16px 34px rgba(0,0,0,.55)}
+.more-menu button{display:block;width:100%;padding:8px 10px;margin:1px 0;text-align:left;background:transparent;border:0;border-left:2px solid transparent;color:#aebecd;font-size:11px;cursor:pointer;white-space:nowrap}
+.more-menu button:hover{background:#13242a;border-left-color:#65dfbd;color:#eafff8}
+.more-menu button.active{background:#17352f;border-left-color:#65dfbd;color:#eafff8}
+.topbar.app-header .header-hud{gap:6px;justify-self:end}
+.topbar.app-header .header-hud .hud-status,.topbar.app-header .header-hud .vital{min-width:78px;padding:4px 8px;background:#0f1720;border:1px solid #26333f;border-radius:4px;gap:2px}
+.hud-status{display:flex;flex-direction:column;justify-content:center;line-height:1.2}
+.hud-status small{color:#708294;font-size:8px}
+.hud-status b{color:#dbe6ed;font:10px Consolas,monospace}
+.topbar.app-header .header-hud .vital div{font-size:8px;gap:6px}
+.topbar.app-header .header-hud .vital b{font:10px Consolas,monospace}
+.topbar.app-header .header-hud .vital i{height:3px;border-radius:999px}
+.topbar.app-header .settings-toggle{align-self:center;height:30px;padding:0 10px;background:#111923;border:1px solid #2a3645;color:#aebfcc;font-size:10px;cursor:pointer;white-space:nowrap}
+.topbar.app-header .settings-toggle:hover{border-color:#f1bd59;color:#f6d488}
+/* Final Rogue dedicated header: no duplicate HP/Energy */
+.final-rogue-head{align-items:center;margin-bottom:2px}
+.final-rogue-title{display:flex;align-items:baseline;gap:8px;min-width:0}
+.final-rogue-title span{color:#5f7184;font-size:8px;letter-spacing:1.5px}
+.final-rogue-title strong{font-size:16px;color:#eef4f6;white-space:nowrap}
+.final-rogue-resources{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.module-label{display:inline-flex;align-items:center;gap:5px;color:#7f93a2;font-size:10px}
+.module-label .module-chip{margin:0}
+@media(max-width:1100px){.topbar.app-header{grid-template-columns:auto minmax(150px,1fr) auto auto auto;gap:8px}.brand-compact h1 span{display:none}.topbar.app-header .header-hud .hud-status{min-width:64px}}
+@media(max-width:900px){.topbar.app-header{grid-template-columns:auto 1fr auto;grid-template-areas:'brand summary settings';}.topbar.app-header .app-nav{display:none}.topbar.app-header .more-wrap{display:none}.brand-compact h1{font-size:16px}}
