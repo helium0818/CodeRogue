@@ -159,6 +159,39 @@ void update() {
   navigate();
 }`;
 
+export const KITE_CODE = `int corner = 0;
+int reposition = 0;
+int retreating = 0;
+int side = 0;
+
+void navigate() {
+  if (wall_ahead()) {
+    if (corner == 0) { turn_left(); }
+    else if (corner == 1) { turn_right(); }
+    else if (side == 0) { turn_left(); side = 1; }
+    else { turn_right(); side = 0; }
+    corner = corner + 1;
+    return;
+  }
+  move_forward();
+}
+
+void update() {
+  if (enemy_hp() == 0) { navigate(); return; }
+  if (retreating == 1) { retreating = 0; back(); return; }
+  if (distance_to_enemy() <= 2) { ranged_attack(); retreating = 1; return; }
+  if (wall_ahead()) { navigate(); return; }
+  if (distance_to_enemy() == 3) {
+    if (enemy_hp() <= 2 && reposition == 0) { back(); reposition = 1; return; }
+    if (reposition == 1) { turn_left(); reposition = 2; return; }
+    if (reposition == 2) { turn_right(); reposition = 0; return; }
+    move_forward(); return;
+  }
+  if (enemy_hp() >= 5 && distance_to_enemy() <= 6) { move_forward(); return; }
+  if (distance_to_enemy() <= 6) { dash(); return; }
+  navigate();
+}`;
+
 export interface RogueEnemyMeta {
   x:number;y:number;hp:number;damage?:number;kind:'slime'|'runner'|'swarm'|'guard'|'turret'|'tank';
   moveEvery?:number;attackEvery?:number;range?:number;active?:boolean;

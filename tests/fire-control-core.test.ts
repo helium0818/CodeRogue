@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_CODE,
   FIRE_CONTROL_CORE,
+  KITE_CODE,
   NAIVE_CODE,
   STANDARD_CODE,
   simulateRogueCombat,
@@ -79,5 +80,13 @@ describe('Combat 03 Fire Control Core', () => {
     expect(adaptive.maxSimultaneousActive).toBe(3);
     expect(adaptive.killOrder).toHaveLength(3);
     expect(adaptive.rangedShots ?? 0).toBeGreaterThanOrEqual(5);
+  });
+  it('KITE strategy clears Fire Control with a real shoot-and-back pull loop', () => {
+    const kite = simulateRogueCombat(FIRE_CONTROL_CORE, KITE_CODE);
+    expect(kite.success).toBe(true);
+    expect(kite.hp).toBeGreaterThan(0);
+    expect(kite.killOrder).toEqual(['runner', 'turret', 'tank']);
+    expect(kite.turnCount).toBeGreaterThanOrEqual(2);
+    expect(kite.energy).toBeGreaterThan(0);
   });
 });
