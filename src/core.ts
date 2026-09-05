@@ -98,7 +98,7 @@ void update() {
   if (enemy_ahead()) { attack(); }
   else { advance(); }
 }`,tactics:['远程被禁用：贴墙导航靠近炮台，用 attack() 贴身拆掉。','隔墙会逼你转弯，先处理墙再前进。']};
-const ELITE_VARIANT_D:SimulationScenario={id:'exp-elite-d',title:'护盾守卫',objective:'守卫会吸收远程火力；贴近后用 attack() 拆掉护盾并抵达出口',map:['##########','#R...S...E#','#...####..#','#.........#','##########'],enemy:{x:5,y:1,hp:3,moveEvery:4,attackEvery:4,kind:'guard'},items:[{x:2,y:1,kind:'energy'},{x:6,y:3,kind:'heal'},{x:8,y:1,kind:'energy'}],constraint:{require:['void advance()','enemy_ahead()']},starterCode:`void advance() {
+const ELITE_VARIANT_D:SimulationScenario={id:'exp-elite-d',title:'护盾守卫',objective:'守卫会吸收远程火力；贴近后用 attack() 拆掉护盾并抵达出口',map:['###########','#R...S...E#','#...####..#','#.........#','###########'],enemy:{x:5,y:1,hp:3,moveEvery:4,attackEvery:4,kind:'guard'},items:[{x:2,y:1,kind:'energy'},{x:6,y:3,kind:'heal'},{x:8,y:1,kind:'energy'}],constraint:{require:['void advance()','enemy_ahead()']},starterCode:`void advance() {
   move_forward();
 }
 void update() {
@@ -137,7 +137,7 @@ const COMBAT_VARIANT_C:SimulationScenario={id:'exp-combat-c',title:'长途奔袭
 void update() {
   if (enemy_near()) { ranged_attack(); }
   else { for (int i = 0; i < 1; i = i + 1) { advance(); } }
-}`,tactics:['这条走廊更长，注意能量管理。','用 ranged_attack() 在安全距离点掉巡逻体。']};export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{const COMBAT_VARIANT_D:SimulationScenario={id:'exp-combat-d',title:'冲刺者走廊',objective:'在冲刺者近身前用 ranged_attack() 点掉它',map:['##########','#R.......E#','#.........#','#.........#','##########'],enemy:{x:6,y:1,hp:1,moveEvery:1,attackEvery:1,kind:'runner'},items:[{x:2,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()'],forbid:['attack()']},starterCode:`void update() {
+}`,tactics:['这条走廊更长，注意能量管理。','用 ranged_attack() 在安全距离点掉巡逻体。']};export function pickScenario(kind:'combat'|'elite'|'boss',seed:number,index:number):SimulationScenario{const COMBAT_VARIANT_D:SimulationScenario={id:'exp-combat-d',title:'冲刺者走廊',objective:'在冲刺者近身前用 ranged_attack() 点掉它',map:['###########','#R.......E#','#.........#','#.........#','###########'],enemy:{x:6,y:1,hp:1,moveEvery:1,attackEvery:1,kind:'runner'},items:[{x:2,y:1,kind:'energy'}],constraint:{require:['for (','enemy_near()','ranged_attack()'],forbid:['attack()']},starterCode:`void update() {
   for (int i = 0; i < 1; i = i + 1) {
     move_forward();
   }

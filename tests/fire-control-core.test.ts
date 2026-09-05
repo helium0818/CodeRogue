@@ -63,7 +63,7 @@ describe('Combat 03 Fire Control Core', () => {
     expect(standard.firstDashTick).toBeUndefined();
 
     expect(adaptive.success).toBe(true);
-    expect(adaptive.ticks).toBe(44);
+    expect(adaptive.ticks).toBe(49);
     expect(adaptive.hp).toBeGreaterThan(0);
     expect(adaptive.energy).toBeGreaterThanOrEqual(20);
     expect(adaptive.damageTaken).toBeGreaterThan(0);

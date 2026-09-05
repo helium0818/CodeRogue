@@ -23,7 +23,7 @@ describe('Final Rogue Run state orchestration / economy', () => {
     expect(result.state.modules).toEqual(['sonar', 'dash']);
     expect(result.state.branch).toBe('risk');
     expect(result.state.restChoice).toBe('repair');
-    expect(result.state.stats).toEqual({ totalTicks: 180, damageTaken: 9, kills: 9 });
+    expect(result.state.stats).toEqual({ totalTicks: 185, damageTaken: 9, kills: 9 });
 
     const c1 = node(result, 'combat1-clear').combat!;
     expect(c1).toMatchObject({ phase: 'pursuit', startHp: 6, startEnergy: 90, endHp: 6, endEnergy: 21, ticks: 67, damageTaken: 0, kills: 3 });
@@ -47,8 +47,8 @@ describe('Final Rogue Run state orchestration / economy', () => {
     const c3 = node(result, 'combat3-start');
     expect(c3).toMatchObject({ hp: 5, energy: 86 });
     const c3End = node(result, 'complete').combat!;
-    expect(c3End).toMatchObject({ phase: 'fire-control', startHp: 5, startEnergy: 86, endHp: 1, endEnergy: 58, ticks: 44, damageTaken: 4, kills: 3 });
-    expect(result.state).toMatchObject({ phase: 'complete', hp: 1, energy: 58 });
+    expect(c3End).toMatchObject({ phase: 'fire-control', startHp: 5, startEnergy: 86, endHp: 1, endEnergy: 51, ticks: 49, damageTaken: 4, kills: 3 });
+    expect(result.state).toMatchObject({ phase: 'complete', hp: 1, energy: 51 });
   });
 
   it('SONAR is carried into Security through real room modifiers: near/dash engage at tick 18', () => {

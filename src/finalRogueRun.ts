@@ -129,14 +129,15 @@ void update() {
 }`;
 
 export const ADAPTIVE_CODE = `int corner = 0;
-int tank_step = 0;
+int reposition = 0;
+int side = 0;
 
 void navigate() {
   if (wall_ahead()) {
     if (corner == 0) { turn_left(); }
     else if (corner == 1) { turn_right(); }
-    else if (tank_step == 2) { turn_left(); }
-    else { turn_right(); }
+    else if (side == 0) { turn_left(); side = 1; }
+    else { turn_right(); side = 0; }
     corner = corner + 1;
     return;
   }
@@ -147,12 +148,13 @@ void update() {
   if (enemy_hp() == 0) { navigate(); return; }
   if (distance_to_enemy() <= 2) { ranged_attack(); return; }
   if (wall_ahead()) { navigate(); return; }
-  if (distance_to_enemy() == 3) { move_forward(); return; }
-  if (enemy_hp() >= 5 && distance_to_enemy() <= 6) {
-    if (tank_step == 0) { move_forward(); tank_step = 1; return; }
-    if (tank_step == 1) { move_forward(); tank_step = 2; return; }
-    if (tank_step == 2) { back(); tank_step = 0; return; }
+  if (distance_to_enemy() == 3) {
+    if (enemy_hp() <= 2 && reposition == 0) { back(); reposition = 1; return; }
+    if (reposition == 1) { turn_left(); reposition = 2; return; }
+    if (reposition == 2) { turn_right(); reposition = 0; return; }
+    move_forward(); return;
   }
+  if (enemy_hp() >= 5 && distance_to_enemy() <= 6) { move_forward(); return; }
   if (distance_to_enemy() <= 6) { dash(); return; }
   navigate();
 }`;
