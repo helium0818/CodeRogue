@@ -129,16 +129,14 @@ void update() {
 }`;
 
 export const ADAPTIVE_CODE = `int corner = 0;
+int tank_step = 0;
 
 void navigate() {
   if (wall_ahead()) {
-    if (corner == 0) {
-      turn_left();
-    } else if (corner == 1) {
-      turn_right();
-    } else {
-      turn_right();
-    }
+    if (corner == 0) { turn_left(); }
+    else if (corner == 1) { turn_right(); }
+    else if (tank_step == 2) { turn_left(); }
+    else { turn_right(); }
     corner = corner + 1;
     return;
   }
@@ -146,32 +144,19 @@ void navigate() {
 }
 
 void update() {
-  if (enemy_hp() == 0) {
-    navigate();
-    return;
-  }
-  if (distance_to_enemy() <= 2) {
-    ranged_attack();
-    return;
-  }
-  if (wall_ahead()) {
-    navigate();
-    return;
-  }
-  if (distance_to_enemy() == 3) {
-    move_forward();
-    return;
-  }
+  if (enemy_hp() == 0) { navigate(); return; }
+  if (distance_to_enemy() <= 2) { ranged_attack(); return; }
+  if (wall_ahead()) { navigate(); return; }
+  if (distance_to_enemy() == 3) { move_forward(); return; }
   if (enemy_hp() >= 5 && distance_to_enemy() <= 6) {
-    move_forward();
-    return;
+    if (tank_step == 0) { move_forward(); tank_step = 1; return; }
+    if (tank_step == 1) { move_forward(); tank_step = 2; return; }
+    if (tank_step == 2) { back(); tank_step = 0; return; }
   }
-  if (distance_to_enemy() <= 6) {
-    dash();
-    return;
-  }
+  if (distance_to_enemy() <= 6) { dash(); return; }
   navigate();
 }`;
+
 export interface RogueEnemyMeta {
   x:number;y:number;hp:number;damage?:number;kind:'slime'|'runner'|'swarm'|'guard'|'turret'|'tank';
   moveEvery?:number;attackEvery?:number;range?:number;active?:boolean;
@@ -363,6 +348,10 @@ export class FinalRogueRun{
     const record:FinalRogueCombatRecord={phase,startHp,startEnergy,endHp:result.hp,endEnergy:result.energy,ticks:result.ticks,damageTaken:result.damageTaken,kills:result.killOrder.length,success:result.success,firmware:code};
     const doneLabel=this.phase==='failed'?'failed':phase==='pursuit'?'combat1-clear':phase==='security'?'combat2-clear':'complete';this.pushNode(doneLabel,record);
     return result;
+  }
+  advance():boolean{
+    if(this.phase==='reward1'||this.phase==='reward2'||this.phase==='branch'||this.phase==='rest')return false;
+    return this.isCombatPhase()||this.phase==='complete';
   }
   chooseReward(id:string):boolean{
     const candidates=this.rewardChoices();if(candidates.length===0||!candidates.includes(id)||this.modules.includes(id))return false;

@@ -528,3 +528,12 @@ linear-gradient(180deg,#151109,#181307)}
 .debug-event{display:inline-block;padding:2px 8px;background:#0e1c24;border:1px solid #2d5261;color:#a9d8d1;font-size:8px;border-radius:10px}
 @media(max-width:760px){.debug-runs{grid-template-columns:1fr}}
 .final-rogue-mission .mission-actions{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px}
+/* Final Rogue decision/maintenance stage panel */
+.final-rogue-stage-panel{min-height:420px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:30px;text-align:center;background:radial-gradient(420px 260px at 50% 20%,rgba(101,223,189,.08),transparent 70%),#0d151d;border:1px solid #315a5c}
+.final-rogue-stage-panel span{color:#6f8294;font-size:9px;letter-spacing:1.4px}
+.final-rogue-stage-panel b{color:#65dfbd;font-size:22px}
+.final-rogue-stage-panel p{color:#aebfca;font-size:12px;line-height:1.7;max-width:520px}
+.final-rogue-stage-panel dl{display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;margin:8px 0}
+.final-rogue-stage-panel dt{color:#74879a;font-size:11px}
+.final-rogue-stage-panel dd{margin:0;color:#e8f1f0;font:13px Consolas,"Microsoft YaHei",monospace}
+.final-rogue-stage-panel .module-chip{margin-left:4px}

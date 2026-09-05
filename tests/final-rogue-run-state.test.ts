@@ -115,6 +115,29 @@ describe('Final Rogue Run state orchestration / economy', () => {
     expect(['complete', 'failed']).toContain(longshotRisk.state.phase);
   });
 
+  it('decision phases cannot advance before their real choice is committed', () => {
+    const run = new FinalRogueRun();
+    run.runNextCombat(CONTROL_CODE);
+    expect(run.phase).toBe('reward1');
+    expect(run.advance()).toBe(false);
+    expect(run.runNextCombat(BREACH_CODE)).toBeNull();
+    expect(run.chooseReward('sonar')).toBe(true);
+    expect(run.phase).toBe('branch');
+    expect(run.advance()).toBe(false);
+    expect(run.chooseBranch('risk')).toBe(true);
+    expect(run.phase).toBe('security');
+    run.runNextCombat(BREACH_CODE);
+    expect(run.phase).toBe('reward2');
+    expect(run.advance()).toBe(false);
+    expect(run.runNextCombat(ADAPTIVE_CODE)).toBeNull();
+    expect(run.chooseReward('dash')).toBe(true);
+    expect(run.phase).toBe('rest');
+    expect(run.advance()).toBe(false);
+    expect(run.runNextCombat(ADAPTIVE_CODE)).toBeNull();
+    expect(run.chooseRest('repair')).toBe(true);
+    expect(run.phase).toBe('fire-control');
+    expect(run.advance()).toBe(true);
+  });
   it('invalid rewards are rejected and the run can stop cleanly on a failed combat', () => {
     const run = new FinalRogueRun();
     run.runNextCombat(CONTROL_CODE);
