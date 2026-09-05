@@ -247,3 +247,28 @@ Tests:
 
 Next:
 - Strengthen RoboC++ runtime validation and player-facing language errors.
+
+## Firmware Grade Direct Rewards / 2026-09-04
+
+Implemented:
+- Removed the post-combat tactical settlement menu. A successful expedition battle now resolves immediately from the firmware grade (S/A/B/C) and auto-grants the matching module or emergency resources.
+- Moved combat reward resolution into `ExpeditionRun.resolveBattle(ticks, damageTaken, enemyMaxHp, grade)` and removed the now-unused `recordBattlePerformance` and combat tactical action list.
+- Updated auto-demo and unit tests to the direct-resolution flow, including grade-to-reward mapping and hull/credits carryover.
+
+Verification:
+- `npm test`: 58 tests passed.
+- `npm run build`: passed.
+## Dungeon Vertical Slice — Data + UI / 2026-09-05
+
+Implemented:
+- New `src/dungeon.ts` fixed 4-room slice data: Start → Combat → Event → Exit; each room has local `interior` shapes, rooms separated by corridors and bidirectional doors.
+- `Simulation` now supports a unified dungeon coordinate model: robot `{x,y,roomId}` (corridor `roomId=null`), enemy/item/exit converted once to global coordinates at reset; `move_forward/back/dash` sync room after every step; success uses `exitPoint`.
+- `DEMO_DUNGEON_SCENARIO` is loaded from the top-bar 地牢演示 button or `?demo=dungeon`; the right World panel renders a single dungeon canvas directly from `sim.dungeon` + `sim.robot/enemy/items/exitPoint` (no UI-side map copies): 4 separated rooms, corridors, door cells, START/COMBAT/EVENT/EXIT labels, and an active-room glow.
+- Dungeon mode reuses run/pause/single-step/breakpoint/watch/snapshot controls; Debugger internals and Story/Expedition renderers are untouched.
+
+Verification:
+- `npm test`: 78 passed (including cross-room Start→Combat→Event→Exit movement plus pause/step/breakpoint regression).
+- `npm run build`: passed.
+- Live screenshot: `docs-dungeon-slice.png` at `http://127.0.0.1:5173/?demo=dungeon`.
+
+Next (after review): Phase 2 randomized Dungeon (6–10 rooms, seeds, BFS reachability), then Rogue events/rewards.

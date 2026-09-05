@@ -17,7 +17,7 @@
 1. The tutorial firmware can read `enemy_ahead()`.
 2. `attack()` damages an adjacent Slime while respecting one action per tick.
 3. Combat state and events are captured in replay frames.
-4. Story navigation exposes five distinct levels: First Boot, The Wall, Decision, Counter Route, and Toggle Corridor.
+4. Story navigation exposes seven distinct levels: First Boot, The Wall, Decision, Counter Route, Toggle Corridor, Ranged First, and Shield Rhythm.
 5. Each level resets its map, objective, and enemy state while reusing the same firmware runtime.
 6. Every Story level has an automated solvability strategy, and Chapter 2 state levels reject the original stateless wall strategy.
 
@@ -53,7 +53,7 @@
 1. Core controls, objectives, status, console feedback, and Trace labels are available in Chinese while RoboC++ API names remain unchanged.
 2. Robot, Slime, exit, walls, HP, energy, selected level, and completed levels are visually distinct.
 3. Desktop presents editor and world side by side; narrow screens use a single-column layout without horizontal overflow or clipped button labels.
-4. All five levels remain buildable, runnable, traceable, and completable through the redesigned interface.
+4. All seven levels remain buildable, runnable, traceable, and completable through the redesigned interface.
 
 ## M6-M8 Vertical Slice
 

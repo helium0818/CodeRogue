@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ExpeditionRun, Simulation, pickScenario } from '../src/core';
+import { ExpeditionRun, Simulation, gradeBattle, pickScenario } from '../src/core';
 
 describe('auto demo', () => {
   it('plays a full expedition like a cautious player', () => {
@@ -18,20 +18,26 @@ describe('auto demo', () => {
         sim.reset();
         while (sim.status === 'running') sim.step();
         console.log(`  battle: ${sim.status} · ${sim.tick} ticks · hp ${sim.robot.hp}`);
-        run.recordBattlePerformance(sim.robot.hp);
-        const grade = sim.robot.hp >= 4 ? 'A' : 'B';
-        const tactical = run.actions()[0].id;
-        expect(run.resolveAction(tactical, true, grade)).toBe(true);
-        console.log(`  tactical: ${tactical} · grade ${grade}`);
+        const damage = Math.max(0, run.modifiers().maxHp - sim.robot.hp);
+        const energyUsed = Math.max(0, run.modifiers().maxEnergy - sim.robot.energy);
+        const actions = sim.frames.filter(frame => !!frame.action).length;
+        const sensorReads = sim.frames.reduce((sum, frame) => sum + frame.sensors.length, 0);
+        const grade = gradeBattle({ tick: sim.tick, damage, energyUsed, actions, sensorReads });
+        const enemyMaxHp = (scenario.enemy?.hp ?? 0) + Math.floor(run.nodeIndex / 4);
+        expect(run.resolveBattle(sim.tick, damage, enemyMaxHp, grade)).toBe(true);
+        console.log(`  firmware: ${grade} · reward ${run.lastOutcome.rewardTitle}`);
+        run.clearNode();
+            } else if (node === 'branch') {
+        expect(run.chooseBranch('safe')).toBe(true);
+        console.log(`  branch: safe`);
       } else {
-        const action = node === 'shop' ? (run.credits >= 3 ? 'buy' : 'leave') : 'scan';
-        expect(run.resolveAction(action, true)).toBe(true);
+        const action = node === 'shop' ? (run.credits >= 3 ? 'buy' : 'leave') : node === 'rest' ? 'repair' : 'scan';
+        expect(run.resolveAction(action)).toBe(true);
         console.log(`  action: ${action} · credits ${run.lastOutcome.credits} · damage ${run.lastOutcome.damageTaken}`);
-      }
-      if (node !== 'boss') {
         const reward = run.choices()[0];
         expect(run.choose(reward.id)).toBe(true);
         console.log(`  reward: ${reward.id} ${reward.title}`);
+        run.clearNode();
       }
       run.clearNode();
     }
