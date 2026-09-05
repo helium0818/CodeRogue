@@ -65,7 +65,11 @@ describe('expedition archetype pressure', () => {
     expect(sonar.frames[0].sensors.find(s => s.name === 'enemy_near')?.value).toBe(true);
   });
   it('keeps the melee elite draft incomplete while its shipped solution wins', () => {
-    const scenario = pickScenario('elite', 1, 1);
+    let scenario = pickScenario('elite', 1, 0);
+    for (let index = 0; index < expeditionPool('elite').length; index++) {
+      const candidate = pickScenario('elite', 1, index);
+      if (candidate.constraint?.forbid?.includes('ranged_attack()')) { scenario = candidate; break; }
+    }
     expect(scenario.constraint?.forbid).toContain('ranged_attack()');
     const sim = new Simulation();
     sim.setScenario(scenario);

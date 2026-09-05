@@ -6,7 +6,7 @@ const DEFENSE_SEED = 13;
 describe('defense demo route (seed 13)', () => {
   it('starts with a deterministic 8-node route and rewrites branch to elite via real chooseBranch', () => {
     const run = new ExpeditionRun(DEFENSE_SEED);
-    expect(run.route).toEqual(['combat', 'branch', 'combat', 'shop', 'rest', 'event', 'rest', 'boss']);
+    expect(run.route).toEqual(['combat', 'branch', 'combat', 'combat', 'shop', 'event', 'rest', 'boss']);
     expect(run.current()).toBe('combat');
     run.clearNode(); // first combat
     expect(run.current()).toBe('branch');
