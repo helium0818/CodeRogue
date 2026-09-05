@@ -535,7 +535,7 @@ onBeforeUnmount(()=>{clearTimer();window.removeEventListener('keydown',handleGlo
           <dl><dt>HP</dt><dd>{{finalRogue.hp}} / {{finalRogue.maxHp}}</dd><dt>Energy</dt><dd>{{finalRogue.energy}} / {{finalRogue.maxEnergy}}</dd><dt>Modules</dt><dd><template v-if="finalRogue.modules.length"><b v-for="id in finalRogue.modules" :key="id" class="module-chip">{{finalRogueModuleTitle(id)}}</b></template><em v-else>标准机体</em></dd></dl>
           <p v-if="finalRogue.phase==='rest'">维护舱选择：战地维修 HP → {{finalRogueRepairPreview()}}，或快速充能 Energy → {{finalRogueChargePreview()}}。</p>
         </div>
-        <div v-else class="map" :aria-label="expeditionScenarioActive?'远征地图':'关卡地图'">
+        <div v-else-if="gameMode==='expedition'&&!expeditionNeedsFirmware" class="expedition-decision-panel"><span>路线节点</span><b>{{routeNodeNoun(expeditionNode)}}</b><p>{{routeNodeDescription(expeditionNode)}}</p><small>选择阶段不生成战斗地图；地图只在遭遇战、精英与 BOSS 中进入。</small></div><div v-else class="map" :aria-label="expeditionScenarioActive?'远征地图':'关卡地图'">
             <div v-for="(row,y) in grid" :key="y" class="map-row">
               <div v-for="item in row" :key="item.x" :class="['tile',item.cell==='#'?'wall':'floor',item.cell==='E'?'exit':'',item.x===sim.robot.x&&item.y===sim.robot.y?'robot':'',item.x===sim.enemy.x&&item.y===sim.enemy.y&&sim.enemy.hp>0?'enemy':'',itemAt(item.x,item.y)?'has-item':'',fogEnabled&&!isVisible(item.x,item.y)?'fog':'']">
                 <img v-if="item.x===sim.robot.x&&item.y===sim.robot.y" :src="robotSprite" :class="['robot-sprite',`dir-${sim.robot.dir}`]" alt="机器人">

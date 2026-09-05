@@ -550,3 +550,8 @@ linear-gradient(180deg,#151109,#181307)}
 @media(min-width:1760px){.expedition-shell .tile{width:43px;height:43px}.expedition-shell .tile .robot-sprite,.expedition-shell .tile .enemy-sprite{width:34px;height:34px}.expedition-shell .tile .exit-sprite{width:30px;height:30px}}
 .mission-brief .expedition-difficulty{display:inline-block;margin-left:8px;padding:1px 6px;background:#2c2413;border:1px solid #7a5a24;color:#f1c66b;font:700 9px/1.4 Consolas,"Microsoft YaHei",sans-serif;border-radius:999px;vertical-align:2px;font-style:normal}
 .mission-brief .expedition-strategy{margin-top:6px;color:#9fdac7;font:10px/1.5 "Microsoft YaHei",sans-serif;font-style:normal}
+.expedition-decision-panel{min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px;text-align:center;color:#9fb2bf;background:linear-gradient(180deg,#0d151d,#0a1118);border:1px dashed #314a55}
+.expedition-decision-panel span{color:#6f8396;font-size:9px;letter-spacing:1.5px}
+.expedition-decision-panel b{color:#f1c66b;font-size:15px}
+.expedition-decision-panel p{margin:0;color:#aab9c4;font-size:11px;line-height:1.6;max-width:460px}
+.expedition-decision-panel small{color:#65798a;font-size:9px}
