@@ -383,4 +383,91 @@ linear-gradient(180deg,#151109,#181307)}
 .final-rogue-complete-row{grid-template-columns:1fr auto}
 .final-rogue-complete-row .confirm-reward{align-self:center}
 .final-rogue-brief{border-color:#3b4557}
-@media(max-width:900px){.final-rogue-route{grid-template-columns:repeat(4,1fr)}.final-rogue-battle{grid-template-columns:1fr}.final-rogue-decision .reward-cards{grid-template-columns:1fr}}
+@media(max-width:900px){.final-rogue-route{grid-template-columns:repeat(4,1fr)}.final-rogue-battle{grid-template-columns:1fr}.final-rogue-decision .reward-cards{grid-template-columns:1fr}}/* Final Rogue B2 visual polish (scoped to .final-rogue-shell / final rogue classes) */
+.shell.final-rogue-shell{background:#0a0f15}
+.final-rogue-strip{padding-bottom:8px}
+.final-rogue-head{margin-bottom:0;align-items:center}
+.final-rogue-head strong{font-size:14px;color:#eef4f6}
+.final-rogue-head>div:first-child>span{font-size:8px;color:#5f7184;letter-spacing:1px}
+.final-rogue-head small{max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.final-rogue-route{margin:5px 0 7px}
+.final-rogue-node{min-height:28px;font-size:9px;padding:3px 4px;border-radius:3px}
+.final-rogue-node.current{box-shadow:0 0 12px #f1bd5922}
+.final-rogue-resources{gap:7px;flex-wrap:nowrap}
+.final-rogue-resources .final-danger{background:transparent;border:1px solid #5a4147;color:#e08a97;cursor:pointer;font-size:9px;padding:4px 8px}
+.final-rogue-resources .final-danger:hover{border-color:#ff7892;color:#ffb0bd}
+@media(min-width:1101px){
+  .shell.final-rogue-shell .layout{grid-template-columns:minmax(390px,40fr) minmax(640px,60fr);gap:16px}
+}
+@media(min-width:721px) and (max-width:1100px){
+  .shell.final-rogue-shell .layout{grid-template-columns:minmax(340px,38fr) minmax(500px,62fr)}
+}
+.final-rogue-mission{display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 9px;margin-top:3px;background:#111820;border:1px solid #34424f;border-left:3px solid #65dfbd;border-radius:4px}
+.mission-copy{display:flex;flex-direction:column;gap:1px;min-width:120px}
+.mission-copy span{color:#65788b;font-size:8px;letter-spacing:1px}
+.mission-copy b{color:#f1bd59;font-size:13px;line-height:1.2}
+.mission-copy em{font-style:normal;color:#9aa8b5;font-size:9px}
+.mission-threats{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.mission-threat{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;background:#0e161f;border:1px solid #2d3b48;border-radius:12px;font-size:9px;color:#c2cdd7}
+.mission-threat b{color:#ff9aab}
+.mission-threat span{color:#a9b8c4;font:9px Consolas,monospace}
+.mission-threat i{font-style:normal;padding:1px 5px;border-radius:8px;font-size:8px}
+.mission-threat.active i{background:#173a33;color:#65dfbd}
+.mission-threat.dormant i{background:#3a2f15;color:#e0b45f}
+.mission-threat.down i{background:#2c2428;color:#7d8794}
+.mission-actions{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.prepared-state{color:#6f8295;font:9px Consolas,monospace;white-space:nowrap}
+.final-primary{background:#65dfbd;border:1px solid #65dfbd;color:#061510;font-size:11px;font-weight:700;padding:7px 12px;border-radius:3px;cursor:pointer}
+.final-primary:hover{background:#83f1d2;box-shadow:0 0 16px #65dfbd55}
+.final-rogue-decision{margin-top:5px;padding:0}
+.decision-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.decision-head div{display:flex;flex-direction:column;gap:1px}
+.decision-head span{color:#5f7184;font-size:8px;letter-spacing:1.4px}
+.decision-head strong{color:#eef4f6;font-size:13px}
+.decision-head small{color:#7e919f;font-size:9px}
+.final-rogue-cards{gap:10px}
+.final-rogue-cards button{position:relative;min-height:190px;padding:15px 14px;background:linear-gradient(180deg,#15222a,#101820 72%);border:1px solid #35505b;border-radius:5px;overflow:hidden}
+.final-rogue-cards button::after{content:"";position:absolute;inset:0;background:radial-gradient(180px 90px at 15% 0%,rgba(101,223,189,.08),transparent 70%);pointer-events:none}
+.final-rogue-cards button:hover{transform:translateY(-4px);border-color:#65dfbd;box-shadow:0 14px 30px rgba(0,0,0,.45),0 0 20px #65dfbd22}
+.final-rogue-cards button.recommended{border-color:#f1bd59;box-shadow:0 0 0 1px #f1bd5944,0 0 24px #f1bd5922}
+.final-rogue-cards .reward-kind{display:flex;align-items:center;gap:6px;color:#86a0aa}
+.final-rogue-cards .reward-kind i{font-style:normal;padding:2px 6px;background:#3a2f15;color:#f1bd59;border-radius:8px;font:8px "Microsoft YaHei",sans-serif}
+.final-rogue-cards strong{margin-top:12px;font-size:17px;color:#e7f2f0}
+.final-rogue-cards b{margin-top:9px;color:#65dfbd;font:11px/1.4 Consolas,"Microsoft YaHei",monospace;font-weight:700}
+.final-rogue-cards small{margin-top:8px;color:#8fa1ad;font-size:9px;line-height:1.5}
+.final-rogue-cards .card-cta{margin-top:14px;color:#f1bd59;font-weight:700;font-size:10px}
+.route-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.route-card{position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:16px 15px;background:#101a22;border:1px solid #3a4a58;border-radius:6px;color:#dce6ea;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.route-card:hover{transform:translateY(-3px)}
+.route-card.safe{border-color:#356b62}
+.route-card.safe:hover{border-color:#65dfbd;box-shadow:0 0 22px #65dfbd22}
+.route-card.risk{border-color:#7a4b45}
+.route-card.risk:hover{border-color:#ff728d;box-shadow:0 0 22px #ff728d22}
+.route-card.repair{border-color:#356b62}
+.route-card.charge{border-color:#7a6a3f}
+.route-tag{display:inline-block;align-self:flex-start;padding:3px 8px;border-radius:10px;font-size:9px}
+.route-card.safe .route-tag,.route-card.repair .route-tag{background:#173a33;color:#65dfbd}
+.route-card.risk .route-tag{background:#4a252c;color:#ff9aab}
+.route-card.charge .route-tag{background:#3d331b;color:#e8c56f}
+.route-card strong{display:block;margin-top:11px;font-size:17px;color:#eef5f5}
+.route-card dl{display:flex;justify-content:space-between;gap:8px;margin:12px 0 0;padding:7px 9px;background:#0a1117;border:1px solid #24303c;border-radius:3px}
+.route-card dt{color:#7f93a2;font-size:9px}
+.route-card dd{margin:0;color:#65dfbd;font:11px Consolas,monospace;font-weight:700}
+.route-card small{margin-top:8px;color:#8ea1ae;font-size:9px;line-height:1.5}
+.route-card i{margin-top:14px;color:#f1bd59;font-style:normal;font-size:10px;font-weight:700}
+.final-complete-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+.final-complete-stats div{padding:13px 8px;background:#0d151d;border:1px solid #2c3a47;border-radius:4px;text-align:center}
+.final-complete-stats b{display:block;color:#65dfbd;font:20px Consolas,monospace}
+.final-complete-stats span{display:block;margin-top:5px;color:#7f93a2;font-size:9px}
+.complete-modules{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;background:#101a22;border:1px solid #2d3b48;border-radius:4px;color:#7f93a2;font-size:10px}
+.complete-modules .module-chip{margin:0}
+@media(max-width:1100px){.final-rogue-mission{grid-template-columns:1fr;align-items:stretch}.mission-actions{align-items:flex-start;flex-direction:row;justify-content:space-between}.final-rogue-resources{flex-wrap:wrap}}
+@media(max-width:760px){.route-cards{grid-template-columns:1fr}.final-complete-stats{grid-template-columns:repeat(2,1fr)}.final-rogue-mission{grid-template-columns:1fr}}/* Final Rogue combat map responsive fitting — visual only */
+.final-rogue-shell .world{display:flex;flex-direction:column;height:min(calc(100vh - 280px),900px);min-height:420px}
+.final-rogue-shell .world .panel-head,.final-rogue-shell .world .objective,.final-rogue-shell .world .dungeon-legend,.final-rogue-shell .world .legend{flex:0 0 auto}
+.final-rogue-shell .final-rogue-map{flex:1;min-height:0;max-height:100%;overflow:hidden;padding:6px;display:flex;align-items:center;justify-content:center}
+.final-rogue-map .dungeon-stage{transform-origin:center;will-change:transform;margin:0}
+.final-rogue-shell .dungeon-legend{gap:8px;padding:5px 0 2px;font-size:8px;white-space:nowrap}
+.final-rogue-shell .dungeon-legend i{width:7px;height:7px;margin-right:3px}
+@media(max-width:1100px){.final-rogue-shell .world{height:min(calc(100vh - 230px),760px);min-height:360px}}
+@media(max-width:760px){.final-rogue-shell .world{height:auto;min-height:320px}}
