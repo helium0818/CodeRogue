@@ -46,15 +46,16 @@ describe('Expedition designed room templates', () => {
       for (let y = 0; y < map.length; y++) {
         expect(map[y].length, `${room.id} row ${y}`).toBe(width);
       }
-      expect(map[1][1]).toBe('R');
+      const spawn = room.scenario.robotSpawn ?? { x: 1, y: 1 };
+      expect(map[spawn.y][spawn.x]).toBe('R');
       const enemy = room.scenario.enemy!;
       expect(walkable(map, enemy.x, enemy.y), `${room.id} enemy walkable`).toBe(true);
       const exitY = map.findIndex((row) => row.includes('E'));
       const exitX = exitY >= 0 ? map[exitY].indexOf('E') : -1;
       expect(exitX, `${room.id} has exit`).toBeGreaterThan(0);
       expect(walkable(map, exitX, exitY)).toBe(true);
-      expect(reachable(map, [1, 1], [enemy.x, enemy.y]), `${room.id} enemy reachable`).toBe(true);
-      expect(reachable(map, [1, 1], [exitX, exitY]), `${room.id} exit reachable`).toBe(true);
+      expect(reachable(map, [spawn.x, spawn.y], [enemy.x, enemy.y]), `${room.id} enemy reachable`).toBe(true);
+      expect(reachable(map, [spawn.x, spawn.y], [exitX, exitY]), `${room.id} exit reachable`).toBe(true);
       for (const item of room.scenario.items ?? []) {
         expect(walkable(map, item.x, item.y), `${room.id} item ${item.x},${item.y}`).toBe(true);
       }
@@ -98,5 +99,20 @@ describe('Expedition designed room templates', () => {
       }
     }
     expect(seen.size).toBe(required.size);
+  });
+  it('shows real pull-kite behavior on EXP-01 with back() and ranged_attack() interleaved', () => {
+    const room = EXPEDITION_ROOM_TEMPLATES.find((item) => item.id === 'exp-01-open-arena')!;
+    const sim = new Simulation();
+    sim.setScenario(scaleExpeditionBattle(room.scenario, 6), { nearRange: 3, rangedRange: 3, maxEnergy: 12 }, 2026);
+    sim.build(room.scenario.solutionCode ?? room.scenario.starterCode);
+    sim.reset();
+    for (let i = 0; i < 260 && sim.status === 'running'; i++) sim.step();
+    expect(sim.status).toBe('success');
+    const actions = sim.frames.map((frame) => frame.action).filter(Boolean);
+    expect(actions.filter((a) => a === 'back').length).toBeGreaterThanOrEqual(2);
+    expect(actions.filter((a) => a === 'ranged_attack').length).toBeGreaterThanOrEqual(2);
+    const backIndexes = actions.map((a, i) => (a === 'back' ? i : -1)).filter((i) => i >= 0);
+    const rangedIndexes = actions.map((a, i) => (a === 'ranged_attack' ? i : -1)).filter((i) => i >= 0);
+    expect(backIndexes.some((bi) => rangedIndexes.some((ri) => ri > bi))).toBe(true);
   });
 });

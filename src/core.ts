@@ -2,7 +2,7 @@ import {Interpreter,Parser,lex,RoboError,RuntimeHost,RuntimeValue} from './langu
 export type Direction='N'|'E'|'S'|'W'; export interface Robot{x:number;y:number;dir:Direction;hp:number;energy:number;roomId?:string|null} export interface Enemy{x:number;y:number;hp:number;active?:boolean;damage?:number;kind?:'slime'|'turret'|'swarm'|'tank'|'runner'|'guard';moveEvery?:number;attackEvery?:number;range?:number;roomId?:string|null}
 export interface Item{x:number;y:number;kind:'energy'|'heal';roomId?:string|null}
 export interface StoryLevel{id:string;title:string;objective:string;map:string[];enemy?:Enemy}
-export interface SimulationScenario{id:string;title:string;objective:string;map?:string[];enemy?:Enemy;enemies?:Enemy[];starterCode:string;solutionCode?:string;tactics:string[];constraint?:{require?:string[];forbid?:string[]};items?:Item[];dungeon?:DungeonLayout;recommendedStrategy?:string;difficulty?:string;tags?:string[]}
+export interface SimulationScenario{id:string;title:string;objective:string;map?:string[];enemy?:Enemy;enemies?:Enemy[];starterCode:string;solutionCode?:string;tactics:string[];constraint?:{require?:string[];forbid?:string[]};items?:Item[];dungeon?:DungeonLayout;recommendedStrategy?:string;difficulty?:string;tags?:string[];robotSpawn?:{x:number;y:number;dir:Direction}}
 export interface SimulationModifiers{maxHp:number;maxEnergy:number;attackPower:number;moveEnergyCost:number;incomingDamage:number;startingHp?:number;energyRegenEvery?:number;rangedPower?:number;nearRange?:number;rangedRange?:number}
 export const STORY_LEVELS:StoryLevel[]=[
  {id:'0-1',title:'First Boot',objective:'让机器人持续前进并抵达出口',map:['########','#R....E#','########']},
@@ -226,7 +226,7 @@ export class Simulation {pulseUsed=false;shieldReady=false;levelIndex=0;map:stri
    this.items=[];for(const room of d.rooms){for(const item of room.items){this.items.push({...item,x:room.x+item.x,y:room.y+item.y,roomId:room.id})}}
    this.exitPoint=exitRoom&&exitRoom.exit?{x:exitRoom.x+exitRoom.exit.x,y:exitRoom.y+exitRoom.exit.y,roomId:exitRoom.id}:undefined;
   }else{
-   this.dungeon=undefined;this.exitPoint=undefined;this.map=[...(l.map??STORY_LEVELS[0].map)];this.robot={x:1,y:1,dir:'E',hp:this.modifiers.startingHp??this.modifiers.maxHp,energy:this.modifiers.maxEnergy,roomId:null};
+   this.dungeon=undefined;this.exitPoint=undefined;this.map=[...(l.map??STORY_LEVELS[0].map)];this.robot={x:scenario.robotSpawn?.x??1,y:scenario.robotSpawn?.y??1,dir:scenario.robotSpawn?.dir??'E',hp:this.modifiers.startingHp??this.modifiers.maxHp,energy:this.modifiers.maxEnergy,roomId:null};
    if(sourceEnemies.length){rawEnemies=sourceEnemies.map(en=>({...en}))}else if(l.enemy){rawEnemies=[{...l.enemy}]}else{rawEnemies=[{x:-1,y:-1,hp:0,kind:'slime'}]}
    this.items=this.scenario?.items?[...this.scenario.items]:[];
   }

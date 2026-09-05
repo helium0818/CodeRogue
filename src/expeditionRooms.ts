@@ -43,10 +43,11 @@ function buildRoom(
   enemy: Cell | undefined,
   exit: Cell,
   kind: string,
+  start: Cell = [1, 1],
 ): string[] {
   const grid = Array.from({ length: height }, () => Array.from({ length: width }, () => '#'));
   for (const [x, y] of open) grid[y][x] = '.';
-  grid[1][1] = 'R';
+  grid[start[1]][start[0]] = 'R';
   grid[exit[1]][exit[0]] = 'E';
   if (enemy) grid[enemy[1]][enemy[0]] = kind === 'runner' ? 'S' : 'S';
   return grid.map((row) => row.join(''));
@@ -70,22 +71,33 @@ void update() {
   else { advance(); }
 }`;
 
-/* EXP-01 开阔竞技场：远程 + 等待，逼迫“拉扯节奏”，绝不近身冲刺者。 */
+/* EXP-01 开阔拉扯场：追猎坦克会持续逼近；距离 1 时用 back() 后撤，2 格时 ranged_attack()。 */
 const arenaOpen: Cell[] = [];
 fillCells(arenaOpen, 1, 1, 15, 5);
 const exp01: SimulationScenario = {
   id: 'exp-01-open-arena',
-  title: '开阔竞技场',
-  objective: '空旷地形没有掩体：远距拆掉炮台后抵达撤离门，避免被炮火压死',
-  map: buildRoom(17, 7, arenaOpen, [13, 1], [15, 1], 'turret'),
-  enemy: { x: 13, y: 1, hp: 2, attackEvery: 5, range: 3, kind: 'turret' },
-  items: [{ x: 3, y: 1, kind: 'energy' }, { x: 6, y: 1, kind: 'energy' }, { x: 9, y: 1, kind: 'energy' }, { x: 11, y: 1, kind: 'energy' }, { x: 13, y: 1, kind: 'energy' }, { x: 14, y: 1, kind: 'heal' }],
+  title: '开阔拉扯场',
+  objective: '追猎坦克持续逼近：距离 2 用 ranged_attack() 点射，贴身用 back() 后撤拉扯，再抵达撤离门',
+  map: buildRoom(17, 7, arenaOpen, [11, 3], [15, 3], 'tank', [8, 3]),
+  robotSpawn: { x: 8, y: 3, dir: 'E' },
+  enemy: { x: 11, y: 3, hp: 2, moveEvery: 2, attackEvery: 2, kind: 'tank' },
+  items: [{ x: 4, y: 3, kind: 'energy' }, { x: 6, y: 3, kind: 'energy' }, { x: 9, y: 3, kind: 'energy' }, { x: 13, y: 3, kind: 'energy' }, { x: 14, y: 3, kind: 'heal' }],
   constraint: { require: ['enemy_near()', 'ranged_attack()'], forbid: ['attack()'] },
   starterCode: 'void update() {\n  move_forward();\n}',
-  solutionCode: rangedNav,
-  recommendedStrategy: '远程压制：在炮台射程内尽快用 ranged_attack() 拆掉，再全速赶往出口',
+  solutionCode: `void update() {
+  if (enemy_hp() > 0) {
+    if (enemy_near() && distance_to_enemy() <= 1) { back(); return; }
+    if (distance_to_enemy() <= 2) { ranged_attack(); return; }
+    wait();
+    return;
+  }
+  if (wall_ahead()) { turn_right(); }
+  else { move_forward(); }
+}`,
+  recommendedStrategy: '拉扯：2 格点射 → 贴身 back() 后撤 → 拉开后再射，形成拉扯节奏',
   difficulty: '低',
-  tactics: ['开阔地形没有掩体，直线靠近会被炮台持续射击。', '进入 2 格射程后用 ranged_attack() 快速拆掉炮台再撤离。'],
+  tags: ['open', 'kite', 'tank', 'back'],
+  tactics: ['追猎坦克会一直逼近，不能站在原地对射。', '用 distance_to_enemy() 读距离：2 格点射，贴身用 back() 拉开。', '不要用 attack()：远程风筝才是这个房间的正确打法。'],
 };
 
 /* EXP-02 狭长走廊：一条 1 格宽通道，Guard 正面对抗，绕行空间为零。 */
@@ -233,7 +245,7 @@ const exp06: SimulationScenario = {
 };
 
 export const EXPEDITION_ROOM_TEMPLATES: ExpeditionRoomTemplate[] = [
-  { id: exp01.id, name: exp01.title, kind: 'combat', difficulty: exp01.difficulty ?? '低', tags: ['open', 'ranged', 'turret'], coreLoop: 'approach + ranged_attack + wall-turn navigation', recommendedStrategy: exp01.recommendedStrategy ?? '', scenario: exp01 },
+  { id: exp01.id, name: exp01.title, kind: 'combat', difficulty: exp01.difficulty ?? '低', tags: ['open', 'kite', 'tank', 'back'], coreLoop: 'distance gate + back() retreat + ranged_attack', recommendedStrategy: exp01.recommendedStrategy ?? '', scenario: exp01 },
   { id: exp02.id, name: exp02.title, kind: 'combat', difficulty: exp02.difficulty ?? '低', tags: ['corridor', 'melee', 'guard'], coreLoop: 'enemy_ahead + attack + single-line advance', recommendedStrategy: exp02.recommendedStrategy ?? '', scenario: exp02 },
   { id: exp03.id, name: exp03.title, kind: 'combat', difficulty: exp03.difficulty ?? '中', tags: ['central-block', 'turning', 'turret'], coreLoop: 'wall-turn navigation + ranged_attack', recommendedStrategy: exp03.recommendedStrategy ?? '', scenario: exp03 },
   { id: exp04.id, name: exp04.title, kind: 'elite', difficulty: exp04.difficulty ?? '中', tags: ['ring', 'kite', 'turret'], coreLoop: 'wall-turn navigation around enclosed core', recommendedStrategy: exp04.recommendedStrategy ?? '', scenario: exp04 },
