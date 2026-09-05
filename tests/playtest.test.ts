@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EXPEDITION_HUB_SCENARIO, ExpeditionRun, Simulation, gradeBattle, pickScenario, scaleExpeditionBattle } from '../src/core';
+import { EXPEDITION_HUB_SCENARIO, ExpeditionRun, Simulation, expeditionPool, gradeBattle, pickScenario, scaleExpeditionBattle } from '../src/core';
 
 const rangedGeneric = `void advance() {}
 void update(){
@@ -18,7 +18,7 @@ void update(){
 
 describe('expedition archetype pressure', () => {
   it('forbids one generic firmware from fitting every battlefield', () => {
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < expeditionPool('combat').length; index++) {
       const combat = pickScenario('combat', 1, index);
       const sim = new Simulation();
       sim.setScenario(combat);
@@ -29,7 +29,7 @@ describe('expedition archetype pressure', () => {
         expect(sim.build(meleeGeneric).ok, `${combat.id} should reject generic melee firmware`).toBe(false);
       }
     }
-    for (let index = 0; index < 4; index++) {
+    for (let index = 0; index < expeditionPool('elite').length; index++) {
       const elite = pickScenario('elite', 1, index);
       const sim = new Simulation();
       sim.setScenario(elite);
@@ -76,7 +76,7 @@ describe('expedition archetype pressure', () => {
   });
   it('keeps every expedition battlefield draft incomplete', () => {
     for (const kind of ['combat','elite','boss'] as const) {
-      const count = kind === 'combat' ? 5 : 4;
+      const count = expeditionPool(kind).length;
       for (let index = 0; index < count; index++) {
         const scenario = pickScenario(kind, 1, index);
         const sim = new Simulation();
@@ -156,7 +156,7 @@ describe('expedition archetype pressure', () => {
     }
   });
   it('keeps every generated scenario solvable by its own shipped solution', () => {
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < expeditionPool('combat').length; index++) {
       const scenario = pickScenario('combat', 1, index);
       const sim = new Simulation();
       sim.setScenario(scenario);
@@ -165,7 +165,7 @@ describe('expedition archetype pressure', () => {
       for (let i = 0; i < 260 && sim.status === 'running'; i++) sim.step();
       expect(sim.status, `${scenario.id} should be solvable`).toBe('success');
     }
-    for (let index = 0; index < 4; index++) {
+    for (let index = 0; index < expeditionPool('elite').length; index++) {
       const scenario = pickScenario('elite', 1, index);
       const sim = new Simulation();
       sim.setScenario(scenario);
